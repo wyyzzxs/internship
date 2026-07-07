@@ -1,0 +1,114 @@
+# ============================================================
+# AI 智能旅游规划师 · .gitignore
+# 防止敏感信息和构建产物被提交到 Git
+# ============================================================
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# 虚拟环境
+venv/
+env/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+
+# ===== 环境变量(关键!绝不能 commit) =====
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# ===== 向量库(体积大,通过脚本重建) =====
+chroma_db/
+*.chroma
+*.sqlite3
+*.db-journal
+
+# ===== 数据库(SQLite) =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== 数据文件(可选,看团队约定) =====
+# 如果 data/ 里的 JSON 也想保密,取消下面注释
+# data/private/
+# *.csv
+
+# ===== IDE / 编辑器 =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.vs/
+*.code-workspace
+
+# ===== Streamlit 缓存 =====
+.streamlit/secrets.toml
+.streamlit/
+
+# ===== 日志 =====
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# ===== 测试覆盖率 =====
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# ===== 临时文件 =====
+*.tmp
+*.bak
+*.swp
+*.orig
+*~
+.DS_Store
+
+# ===== 大型数据集 / 模型 =====
+*.pkl
+*.pytorch
+*.h5
+*.hdf5
+*.parquet
+
+# ===== 构建产物 =====
+*.spec
+build/
+dist/
+*.egg-info/
+/slides
+项目方案.md
+AI智能旅游规划师.md
