@@ -1,0 +1,56 @@
+{
+  "武汉": {
+    "2025-07-08": {"temp_high": 33, "temp_low": 26, "weather": "晴", "wind": "东南风 2 级", "icon": "☀️"},
+    "2025-07-09": {"temp_high": 34, "temp_low": 27, "weather": "多云", "wind": "东南风 3 级", "icon": "⛅"},
+    "2025-07-10": {"temp_high": 30, "temp_low": 25, "weather": "阵雨", "wind": "东风 3 级", "icon": "🌦️"},
+    "2025-07-11": {"temp_high": 29, "temp_low": 24, "weather": "小雨", "wind": "东北风 2 级", "icon": "🌧️"},
+    "2025-07-12": {"temp_high": 31, "temp_low": 25, "weather": "多云", "wind": "东风 2 级", "icon": "⛅"},
+    "2025-07-13": {"temp_high": 32, "temp_low": 26, "weather": "晴", "wind": "东南风 2 级", "icon": "☀️"},
+    "2025-07-14": {"temp_high": 35, "temp_low": 28, "weather": "晴", "wind": "南风 3 级", "icon": "☀️"}
+  },
+  "西安": {
+    "2025-07-08": {"temp_high": 32, "temp_low": 22, "weather": "晴", "wind": "东北风 2 级", "icon": "☀️"},
+    "2025-07-09": {"temp_high": 33, "temp_low": 23, "weather": "多云", "wind": "东风 2 级", "icon": "⛅"},
+    "2025-07-10": {"temp_high": 31, "temp_low": 22, "weather": "阴", "wind": "东南风 2 级", "icon": "☁️"},
+    "2025-07-11": {"temp_high": 29, "temp_low": 20, "weather": "小雨", "wind": "北风 3 级", "icon": "🌧️"},
+    "2025-07-12": {"temp_high": 30, "temp_low": 21, "weather": "多云", "wind": "东北风 2 级", "icon": "⛅"},
+    "2025-07-13": {"temp_high": 32, "temp_low": 22, "weather": "晴", "wind": "东风 2 级", "icon": "☀️"},
+    "2025-07-14": {"temp_high": 34, "temp_low": 24, "weather": "晴", "wind": "南风 2 级", "icon": "☀️"}
+  },
+  "成都": {
+    "2025-07-08": {"temp_high": 30, "temp_low": 23, "weather": "多云", "wind": "南风 2 级", "icon": "⛅"},
+    "2025-07-09": {"temp_high": 31, "temp_low": 24, "weather": "阴", "wind": "东南风 2 级", "icon": "☁️"},
+    "2025-07-10": {"temp_high": 29, "temp_low": 22, "weather": "小雨", "wind": "东风 2 级", "icon": "🌧️"},
+    "2025-07-11": {"temp_high": 28, "temp_low": 21, "weather": "阵雨", "wind": "北风 2 级", "icon": "🌦️"},
+    "2025-07-12": {"temp_high": 30, "temp_low": 23, "weather": "多云", "wind": "南风 2 级", "icon": "⛅"},
+    "2025-07-13": {"temp_high": 32, "temp_low": 24, "weather": "晴", "wind": "东南风 2 级", "icon": "☀️"},
+    "2025-07-14": {"temp_high": 33, "temp_low": 25, "weather": "晴", "wind": "南风 3 级", "icon": "☀️"}
+  },
+  "北京": {
+    "2025-07-08": {"temp_high": 31, "temp_low": 21, "weather": "晴", "wind": "北风 3 级", "icon": "☀️"},
+    "2025-07-09": {"temp_high": 32, "temp_low": 22, "weather": "多云", "wind": "东北风 3 级", "icon": "⛅"},
+    "2025-07-10": {"temp_high": 30, "temp_low": 20, "weather": "雷阵雨", "wind": "北风 4 级", "icon": "⛈️"},
+    "2025-07-11": {"temp_high": 29, "temp_low": 19, "weather": "多云", "wind": "东北风 3 级", "icon": "⛅"},
+    "2025-07-12": {"temp_high": 31, "temp_low": 21, "weather": "晴", "wind": "北风 2 级", "icon": "☀️"},
+    "2025-07-13": {"temp_high": 33, "temp_low": 23, "weather": "晴", "wind": "南风 2 级", "icon": "☀️"},
+    "2025-07-14": {"temp_high": 34, "temp_low": 24, "weather": "多云", "wind": "南风 3 级", "icon": "⛅"}
+  },
+  "杭州": {
+    "2025-07-08": {"temp_high": 32, "temp_low": 25, "weather": "多云", "wind": "东南风 3 级", "icon": "⛅"},
+    "2025-07-09": {"temp_high": 33, "temp_low": 26, "weather": "晴", "wind": "南风 3 级", "icon": "☀️"},
+    "2025-07-10": {"temp_high": 30, "temp_low": 24, "weather": "阵雨", "wind": "东风 3 级", "icon": "🌦️"},
+    "2025-07-11": {"temp_high": 29, "temp_low": 23, "weather": "小雨", "wind": "东北风 2 级", "icon": "🌧️"},
+    "2025-07-12": {"temp_high": 31, "temp_low": 24, "weather": "多云", "wind": "东风 2 级", "icon": "⛅"},
+    "2025-07-13": {"temp_high": 32, "temp_low": 25, "weather": "晴", "wind": "东南风 2 级", "icon": "☀️"},
+    "2025-07-14": {"temp_high": 34, "temp_low": 27, "weather": "晴", "wind": "南风 3 级", "icon": "☀️"}
+  },
+  "厦门": {
+    "2025-07-08": {"temp_high": 31, "temp_low": 26, "weather": "多云", "wind": "东南风 4 级", "icon": "⛅"},
+    "2025-07-09": {"temp_high": 32, "temp_low": 27, "weather": "晴", "wind": "南风 4 级", "icon": "☀️"},
+    "2025-07-10": {"temp_high": 30, "temp_low": 25, "weather": "雷阵雨", "wind": "东南风 5 级", "icon": "⛈️"},
+    "2025-07-11": {"temp_high": 29, "temp_low": 25, "weather": "阵雨", "wind": "东风 4 级", "icon": "🌦️"},
+    "2025-07-12": {"temp_high": 31, "temp_low": 26, "weather": "多云", "wind": "东南风 3 级", "icon": "⛅"},
+    "2025-07-13": {"temp_high": 32, "temp_low": 27, "weather": "晴", "wind": "南风 3 级", "icon": "☀️"},
+    "2025-07-14": {"temp_high": 33, "temp_low": 28, "weather": "晴", "wind": "南风 4 级", "icon": "☀️"}
+  }
+}

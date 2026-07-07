@@ -1,0 +1,132 @@
+{
+  "description": "人流密度 mock 数据，用于热力图展示。数值范围 0-100，表示相对人流密度。",
+  "update_time": "2025-07-08",
+  "cities": {
+    "武汉": {
+      "weekday": {
+        "morning": {"center": 65, "attractions": 45, "business": 80, "residential": 40},
+        "afternoon": {"center": 75, "attractions": 70, "business": 70, "residential": 35},
+        "evening": {"center": 85, "attractions": 55, "business": 60, "residential": 50},
+        "night": {"center": 60, "attractions": 20, "business": 30, "residential": 25}
+      },
+      "weekend": {
+        "morning": {"center": 55, "attractions": 70, "business": 50, "residential": 45},
+        "afternoon": {"center": 90, "attractions": 95, "business": 65, "residential": 55},
+        "evening": {"center": 95, "attractions": 80, "business": 70, "residential": 60},
+        "night": {"center": 70, "attractions": 40, "business": 45, "residential": 35}
+      },
+      "hotspots": [
+        {"name": "江汉路步行街", "lat": 30.5850, "lng": 114.2920, "density": 95},
+        {"name": "户部巷", "lat": 30.5472, "lng": 114.3061, "density": 85},
+        {"name": "黄鹤楼", "lat": 30.5438, "lng": 114.3055, "density": 88},
+        {"name": "东湖绿道", "lat": 30.5505, "lng": 114.3708, "density": 72},
+        {"name": "光谷步行街", "lat": 30.5090, "lng": 114.4060, "density": 90}
+      ]
+    },
+    "西安": {
+      "weekday": {
+        "morning": {"center": 70, "attractions": 50, "business": 75, "residential": 40},
+        "afternoon": {"center": 80, "attractions": 75, "business": 65, "residential": 35},
+        "evening": {"center": 90, "attractions": 60, "business": 55, "residential": 45},
+        "night": {"center": 55, "attractions": 25, "business": 25, "residential": 20}
+      },
+      "weekend": {
+        "morning": {"center": 60, "attractions": 80, "business": 55, "residential": 45},
+        "afternoon": {"center": 95, "attractions": 98, "business": 60, "residential": 50},
+        "evening": {"center": 98, "attractions": 85, "business": 65, "residential": 55},
+        "night": {"center": 65, "attractions": 45, "business": 40, "residential": 30}
+      },
+      "hotspots": [
+        {"name": "回民街", "lat": 34.2625, "lng": 108.9400, "density": 96},
+        {"name": "大雁塔北广场", "lat": 34.2206, "lng": 108.9685, "density": 92},
+        {"name": "钟鼓楼", "lat": 34.2615, "lng": 108.9420, "density": 88},
+        {"name": "兵马俑", "lat": 34.3841, "lng": 109.2785, "density": 85},
+        {"name": "永兴坊", "lat": 34.2680, "lng": 108.9600, "density": 82}
+      ]
+    },
+    "成都": {
+      "weekday": {
+        "morning": {"center": 60, "attractions": 40, "business": 75, "residential": 45},
+        "afternoon": {"center": 70, "attractions": 65, "business": 70, "residential": 40},
+        "evening": {"center": 85, "attractions": 55, "business": 65, "residential": 50},
+        "night": {"center": 75, "attractions": 30, "business": 55, "residential": 35}
+      },
+      "weekend": {
+        "morning": {"center": 55, "attractions": 75, "business": 55, "residential": 50},
+        "afternoon": {"center": 88, "attractions": 92, "business": 65, "residential": 55},
+        "evening": {"center": 95, "attractions": 80, "business": 75, "residential": 60},
+        "night": {"center": 85, "attractions": 50, "business": 70, "residential": 40}
+      },
+      "hotspots": [
+        {"name": "春熙路/太古里", "lat": 30.6570, "lng": 104.0820, "density": 98},
+        {"name": "宽窄巷子", "lat": 30.6698, "lng": 104.0550, "density": 92},
+        {"name": "锦里古街", "lat": 30.6420, "lng": 104.0440, "density": 90},
+        {"name": "大熊猫基地", "lat": 30.7336, "lng": 104.1480, "density": 88},
+        {"name": "武侯祠", "lat": 30.6400, "lng": 104.0460, "density": 78}
+      ]
+    },
+    "北京": {
+      "weekday": {
+        "morning": {"center": 85, "attractions": 55, "business": 90, "residential": 50},
+        "afternoon": {"center": 80, "attractions": 80, "business": 80, "residential": 45},
+        "evening": {"center": 75, "attractions": 50, "business": 60, "residential": 55},
+        "night": {"center": 50, "attractions": 20, "business": 30, "residential": 30}
+      },
+      "weekend": {
+        "morning": {"center": 70, "attractions": 85, "business": 55, "residential": 55},
+        "afternoon": {"center": 92, "attractions": 98, "business": 60, "residential": 60},
+        "evening": {"center": 88, "attractions": 75, "business": 55, "residential": 60},
+        "night": {"center": 60, "attractions": 40, "business": 40, "residential": 35}
+      },
+      "hotspots": [
+        {"name": "故宫", "lat": 39.9163, "lng": 116.3972, "density": 96},
+        {"name": "王府井", "lat": 39.9100, "lng": 116.4100, "density": 94},
+        {"name": "南锣鼓巷", "lat": 39.9320, "lng": 116.4030, "density": 90},
+        {"name": "八达岭长城", "lat": 40.3590, "lng": 116.0200, "density": 88},
+        {"name": "天坛", "lat": 39.8830, "lng": 116.4120, "density": 82}
+      ]
+    },
+    "杭州": {
+      "weekday": {
+        "morning": {"center": 55, "attractions": 45, "business": 70, "residential": 40},
+        "afternoon": {"center": 65, "attractions": 70, "business": 65, "residential": 35},
+        "evening": {"center": 75, "attractions": 55, "business": 55, "residential": 45},
+        "night": {"center": 45, "attractions": 20, "business": 25, "residential": 25}
+      },
+      "weekend": {
+        "morning": {"center": 60, "attractions": 80, "business": 50, "residential": 45},
+        "afternoon": {"center": 90, "attractions": 96, "business": 60, "residential": 55},
+        "evening": {"center": 85, "attractions": 80, "business": 60, "residential": 55},
+        "night": {"center": 55, "attractions": 35, "business": 35, "residential": 30}
+      },
+      "hotspots": [
+        {"name": "西湖断桥", "lat": 30.2600, "lng": 120.1500, "density": 95},
+        {"name": "湖滨银泰", "lat": 30.2550, "lng": 120.1600, "density": 88},
+        {"name": "灵隐寺", "lat": 30.2400, "lng": 120.1000, "density": 85},
+        {"name": "河坊街", "lat": 30.2450, "lng": 120.1700, "density": 82},
+        {"name": "西溪湿地", "lat": 30.2700, "lng": 120.0650, "density": 72}
+      ]
+    },
+    "厦门": {
+      "weekday": {
+        "morning": {"center": 50, "attractions": 40, "business": 65, "residential": 35},
+        "afternoon": {"center": 60, "attractions": 60, "business": 60, "residential": 30},
+        "evening": {"center": 75, "attractions": 50, "business": 55, "residential": 40},
+        "night": {"center": 55, "attractions": 25, "business": 40, "residential": 25}
+      },
+      "weekend": {
+        "morning": {"center": 55, "attractions": 75, "business": 50, "residential": 40},
+        "afternoon": {"center": 85, "attractions": 95, "business": 60, "residential": 50},
+        "evening": {"center": 90, "attractions": 85, "business": 70, "residential": 55},
+        "night": {"center": 70, "attractions": 50, "business": 55, "residential": 35}
+      },
+      "hotspots": [
+        {"name": "鼓浪屿", "lat": 24.4485, "lng": 118.0823, "density": 94},
+        {"name": "曾厝垵", "lat": 24.4250, "lng": 118.1300, "density": 90},
+        {"name": "中山路", "lat": 24.4620, "lng": 118.0820, "density": 86},
+        {"name": "环岛路白城沙滩", "lat": 24.4330, "lng": 118.1150, "density": 82},
+        {"name": "沙坡尾", "lat": 24.4380, "lng": 118.1050, "density": 78}
+      ]
+    }
+  }
+}

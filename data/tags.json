@@ -1,0 +1,61 @@
+{
+  "preference_tags": [
+    {
+      "id": "history",
+      "name": "历史文化",
+      "description": "古迹、博物馆、文化遗产"
+    },
+    {
+      "id": "nature",
+      "name": "自然风光",
+      "description": "山水、湖泊、公园、湿地"
+    },
+    {
+      "id": "food",
+      "name": "美食探店",
+      "description": "特色小吃、网红餐厅、夜市"
+    },
+    {
+      "id": "night",
+      "name": "夜景观赏",
+      "description": "夜景、灯光秀、夜游"
+    },
+    {
+      "id": "art",
+      "name": "文艺打卡",
+      "description": "书店、咖啡馆、艺术区、网红墙"
+    },
+    {
+      "id": "leisure",
+      "name": "休闲度假",
+      "description": "温泉、SPA、慢生活、海岛"
+    }
+  ],
+  "crowd_types": [
+    {
+      "id": "couple",
+      "name": "情侣出游",
+      "description": "浪漫景点、私密空间、拍照打卡"
+    },
+    {
+      "id": "family",
+      "name": "亲子家庭",
+      "description": "儿童友好、教育意义、安全便利"
+    },
+    {
+      "id": "solo",
+      "name": "独自旅行",
+      "description": "自由灵活、社交场所、性价比高"
+    },
+    {
+      "id": "friends",
+      "name": "朋友结伴",
+      "description": "热闹有趣、多人活动、拍照分享"
+    },
+    {
+      "id": "senior",
+      "name": "爸妈长辈",
+      "description": "节奏舒缓、经典景点、舒适便利"
+    }
+  ]
+}
