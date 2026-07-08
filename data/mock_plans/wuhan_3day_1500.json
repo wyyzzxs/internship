@@ -1,0 +1,178 @@
+{
+  "trip_summary": {
+    "city": "武汉",
+    "days": 3,
+    "start_date": "2025-07-08",
+    "end_date": "2025-07-10",
+    "total_budget": 1500,
+    "people": "情侣"
+  },
+  "weather": [
+    {
+      "date": "2025-07-08",
+      "weather": "晴",
+      "temp_high": 33,
+      "temp_low": 26,
+      "suggestion": "适合户外"
+    },
+    {
+      "date": "2025-07-09",
+      "weather": "多云",
+      "temp_high": 34,
+      "temp_low": 27,
+      "suggestion": "适合户外"
+    },
+    {
+      "date": "2025-07-10",
+      "weather": "阵雨",
+      "temp_high": 30,
+      "temp_low": 25,
+      "suggestion": "建议安排室内活动"
+    }
+  ],
+  "days": [
+    {
+      "day": 1,
+      "date": "2025-07-08",
+      "items": [
+        {
+          "time": "09:00",
+          "type": "景点",
+          "name": "黄鹤楼",
+          "duration_hours": 2,
+          "cost": 80,
+          "lat": 30.5438,
+          "lng": 114.3055,
+          "description": "江南三大名楼之首",
+          "emoji": "🏯"
+        },
+        {
+          "time": "12:00",
+          "type": "餐饮",
+          "name": "户部巷午餐",
+          "duration_hours": 1,
+          "cost": 50,
+          "lat": 30.5472,
+          "lng": 114.3061,
+          "description": "武汉特色小吃一条街",
+          "emoji": "🍜"
+        },
+        {
+          "time": "14:00",
+          "type": "景点",
+          "name": "武汉长江大桥",
+          "duration_hours": 1.5,
+          "cost": 0,
+          "lat": 30.5538,
+          "lng": 114.3125,
+          "description": "万里长江第一桥",
+          "emoji": "🌉"
+        },
+        {
+          "time": "18:30",
+          "type": "餐饮",
+          "name": "武昌鱼晚餐",
+          "duration_hours": 1.5,
+          "cost": 120,
+          "lat": 30.5520,
+          "lng": 114.3100,
+          "description": "湖北名菜武昌鱼",
+          "emoji": "🐟"
+        }
+      ],
+      "day_cost": 250
+    },
+    {
+      "day": 2,
+      "date": "2025-07-09",
+      "items": [
+        {
+          "time": "09:30",
+          "type": "景点",
+          "name": "东湖风景区",
+          "duration_hours": 4,
+          "cost": 0,
+          "lat": 30.5505,
+          "lng": 114.3708,
+          "description": "中国第二大城中湖",
+          "emoji": "🌸"
+        },
+        {
+          "time": "13:30",
+          "type": "餐饮",
+          "name": "东湖农家菜",
+          "duration_hours": 1.5,
+          "cost": 90,
+          "lat": 30.5510,
+          "lng": 114.3650,
+          "description": "东湖周边特色菜",
+          "emoji": "🥬"
+        },
+        {
+          "time": "15:30",
+          "type": "景点",
+          "name": "湖北省博物馆",
+          "duration_hours": 2,
+          "cost": 0,
+          "lat": 30.5647,
+          "lng": 114.3396,
+          "description": "曾侯乙编钟所在地",
+          "emoji": "🏛️"
+        }
+      ],
+      "day_cost": 90
+    },
+    {
+      "day": 3,
+      "date": "2025-07-10",
+      "items": [
+        {
+          "time": "09:30",
+          "type": "景点",
+          "name": "江汉路步行街",
+          "duration_hours": 2,
+          "cost": 0,
+          "lat": 30.5905,
+          "lng": 114.2720,
+          "description": "百年商业街",
+          "emoji": "🛍️"
+        },
+        {
+          "time": "12:00",
+          "type": "餐饮",
+          "name": "吉庆街午餐",
+          "duration_hours": 1.5,
+          "cost": 70,
+          "lat": 30.5880,
+          "lng": 114.2705,
+          "description": "武汉老字号美食",
+          "emoji": "🥘"
+        },
+        {
+          "time": "14:00",
+          "type": "景点",
+          "name": "武汉大学",
+          "duration_hours": 2,
+          "cost": 0,
+          "lat": 30.5418,
+          "lng": 114.3650,
+          "description": "雨天备选室内博物馆",
+          "emoji": "🌧️"
+        }
+      ],
+      "day_cost": 70
+    }
+  ],
+  "budget_breakdown": {
+    "交通": 200,
+    "住宿": 600,
+    "门票": 80,
+    "餐饮": 330,
+    "其他": 60
+  },
+  "tips": [
+    "周一黄鹤楼闭馆,本次行程周二开始不受影响",
+    "Day3 有阵雨,已把户外活动改为室内备选",
+    "东湖绿道免费,可租共享单车环湖"
+  ]
+}
