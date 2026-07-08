@@ -1,4 +1,5 @@
 {
+  "_meta": "⚠️ 临时越界 mock - 方案 §8.3 data/ 全部归成员 F 负责,本轮 F 未提交,A 临时编写供测试驱动 PlanAgent 跑通。F 接管数据后可由 F 替换或调整内容。",
   "trip_summary": {
     "city": "武汉",
     "days": 2,
