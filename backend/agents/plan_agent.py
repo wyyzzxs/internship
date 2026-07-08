@@ -31,6 +31,7 @@ import logging
 import re
 import sys
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Any, Callable, Optional
 
 from pydantic import ValidationError
@@ -161,6 +162,11 @@ class PlanAgent:
         - 最多 _MAX_REFLECT_ATTEMPTS(3) 次反射
         - 不通过则按 suggestion 规则做局部修复(超支→重算预算,景点不足→补景点)
         - 修复后再 reflect,3 次不通过强制返回
+
+        **第三轮新增**:错误兜底加固
+        - LLMUnavailable → 中文友好 message + fallback
+        - ValidationError → 友好提示 + fallback
+        - RuntimeError → 兜底
         """
         # 1. 内部校验
         try:
@@ -168,7 +174,11 @@ class PlanAgent:
         except ValidationError as exc:
             logger.warning("AgentRequest 校验失败(%s),触发 fallback", exc)
             fallback = self._fallback_plan(request)
-            fallback["error"] = f"validation: {exc.errors()[0]['msg']}"
+            first_err = exc.errors()[0] if exc.errors() else {}
+            field = ".".join(str(x) for x in first_err.get("loc", []))
+            msg = first_err.get("msg", "validation failed")
+            # 保留 "validation" 关键字(老测试断言) + 中文友好 message(给前端)
+            fallback["error"] = f"validation: {field} {msg} | 请求参数校验失败:字段 {field} {msg}"
             fallback["success"] = False
             return fallback
 
@@ -187,10 +197,20 @@ class PlanAgent:
                 plan=plan,
                 tools_called=list(self._last_tools_called),
             ).model_dump(mode="json")
-        except (LLMUnavailable, RuntimeError, ValueError) as exc:
+        except LLMUnavailable as exc:
+            logger.warning("LLM 不可用(%s),触发 fallback", exc)
+            fallback = self._fallback_plan(request)
+            # 第三轮:返中文友好 message(给前端),但保留原 exc 文本(给日志/老测试)
+            fallback["error"] = (
+                f"{exc} | AI 服务暂不可用(DashScope 超时/限流),已为您展示兜底行程。"
+                "请稍后重试或联系管理员。"
+            )
+            fallback["success"] = False
+            return fallback
+        except (RuntimeError, ValueError) as exc:
             logger.warning("主流程失败(%s),触发 fallback", exc)
             fallback = self._fallback_plan(request)
-            fallback["error"] = str(exc)
+            fallback["error"] = f"生成行程时出错:{exc}。已为您展示兜底行程。"
             fallback["success"] = False
             return fallback
 
@@ -591,14 +611,35 @@ class PlanAgent:
     # Fallback
     # ================================================================== #
     def _fallback_plan(self, request: dict) -> dict:
-        """优先尝试 data/mock_plans/{city}.json(由成员 F 维护,本轮未必存在);
-        文件不存在或加载失败时,直接返回 _minimal_plan 内存兜底。
+        """3 城演示数据轮换兜底(第三轮新增)。
+
+        候选路径(按优先级):
+        1. data/mock_plans/{city}_{days}day_{budget}.json  ← 用户精确请求
+        2. data/mock_plans/{city}_3day_1500.json           ← 同一城市任意 days/budget
+        3. data/mock_plans/{city}.json                    ← 城市直接命名
+        4. data/mock_plans/wuhan_3day_1500.json           ← 终极兜底(武汉演示数据)
+        5. 全部失败 → _minimal_plan 内存兜底
         """
         city = (request.get("city") or "武汉").strip()
-        # 候选路径:成员 F 接管后会提供
-        candidates = [
+        try:
+            days_n = int(request.get("days") or 3)
+        except (TypeError, ValueError):
+            days_n = 3
+        try:
+            budget_n = int(request.get("budget") or 1500)
+        except (TypeError, ValueError):
+            budget_n = 1500
+
+        candidates: list[Path] = [
+            # 精确匹配
+            Config.MOCK_PLANS_DIR / f"{_slug(city)}_{days_n}day_{budget_n}.json",
+            # 城市同款(任意 days/budget)
             Config.MOCK_PLANS_DIR / f"{_slug(city)}_3day_1500.json",
+            # 中文城市名
+            Config.MOCK_PLANS_DIR / f"{city}_3day_1500.json",
             Config.MOCK_PLANS_DIR / f"{city}.json",
+            # 终极兜底(由本轮 chengdu_2day_2000.json / wuhan_3day_1500.json / xian_3day_3500.json 共 3 城覆盖)
+            Config.MOCK_PLANS_DIR / "wuhan_3day_1500.json",
         ]
         for path in candidates:
             if path.exists():
