@@ -23,10 +23,15 @@
 
 ### 1.2 成功响应(200)
 **完全对齐方案 §7.2 PlanResponse + Plan 嵌套结构**:
+
+> ⚠️ **session_id 字段**:第三轮起,后端 `plan()` 用 `ses_{YYYYMMDD}_{uuid4前8位}` 自动生成
+> (消除"文档说返,代码不返"的冲突)。D 接管 FastAPI 后可以忽略这个字段,
+> 自己用 `request.cookies.get("session_id")` 之类的方式生成。
+
 ```python
 {
     "success": true,
-    "session_id": "ses_20250708_001",   # str | null
+    "session_id": "ses_20250708_a1b2c3d4",  # str | null,后端自动生成
     "plan": {
         "trip_summary": {
             "city": "武汉",              # str
@@ -190,15 +195,19 @@ store.clear(session_id: str) -> None
 ## 6. 测试命令
 
 ```powershell
-# 单元测试(48 个)
-$env:MOCK_LLM = "true"
-pytest backend/tests/ -v
+# ⚠️ PowerShell 行续行陷阱:命令末尾不要加 `\`
+# 否则 `--cov-report=term-missing\` 会被 PowerShell 当行续行,
+# 实际传 pytest 的是 `--cov-report=term-missing"`(带引号)→ 报错
 
-# 集成测试(3 个 demo + 2 兜底)
-pytest backend/tests/test_integration.py -v
+# 单元测试(56 个,含 3 城 mock 回归测试)
+$env:MOCK_LLM = "true"
+& "E:\myapp\anaconda\envs\internship\python.exe" -m pytest backend/tests/ -v
+
+# 集成测试(3 个 demo + 2 兜底,5 用例)
+& "E:\myapp\anaconda\envs\internship\python.exe" -m pytest backend/tests/test_integration.py -v
 
 # 全部 + 覆盖率
-pytest --cov=backend --cov-report=term-missing
+& "E:\myapp\anaconda\envs\internship\python.exe" -m pytest backend/tests/ --cov=backend --cov-report=term-missing
 ```
 
 ---
