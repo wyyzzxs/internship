@@ -7,9 +7,9 @@
 3. Pydantic 校验 Plan,失败 fallback
 4. LLMUnavailable / RuntimeError / ValidationError → 全部走 _fallback_plan
 
-兜底链:
-- 读 data/mock_plans/{city}_3day_1500.json / {city}.json / wuhan_3day_1500.json
-- 都没有 → _minimal_plan 内存兜底
+兜底链(本轮不依赖外部 JSON):
+- 优先尝试 data/mock_plans/{city}.json(由成员 F 提供,本轮未提交)
+- 都没有 → _minimal_plan 内存兜底(保证任何 request 都能返回非空结构)
 """
 from __future__ import annotations
 
@@ -245,12 +245,14 @@ class PlanAgent:
     # Fallback
     # ------------------------------------------------------------------ #
     def _fallback_plan(self, request: dict) -> dict:
-        """从 data/mock_plans/{city}.json 读;缺省取 wuhan_3day_1500.json。"""
+        """优先尝试 data/mock_plans/{city}.json(由成员 F 维护,本轮未提交);
+        文件不存在或加载失败时,直接返回 _minimal_plan 内存兜底。
+        """
         city = (request.get("city") or "武汉").strip()
+        # 候选路径:成员 F 接管后会提供,本轮未必存在
         candidates = [
             Config.MOCK_PLANS_DIR / f"{_slug(city)}_3day_1500.json",
             Config.MOCK_PLANS_DIR / f"{city}.json",
-            Config.MOCK_PLANS_DIR / "wuhan_3day_1500.json",
         ]
         for path in candidates:
             if path.exists():
@@ -268,7 +270,7 @@ class PlanAgent:
                 except (OSError, json.JSONDecodeError, ValueError) as exc:
                     logger.warning("fallback 文件 %s 加载失败: %s", path, exc)
 
-        # 终极兜底:内存最小 Plan
+        # 终极兜底:内存最小 Plan(任何 request 都能返回非空结构)
         minimal = self._minimal_plan(request)
         return PlanResponse(
             success=True,

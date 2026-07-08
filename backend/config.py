@@ -1,5 +1,10 @@
 """配置层 - 读取 .env,暴露全局 Config。
 
+**A / D 职责边界**(项目方案 §8.3 / §12.4):
+- **成员 A 阶段**(本文件当前实现):LLM 相关字段 + PROJECT_ROOT,供 LLMClient / PlanAgent 使用。
+- **成员 D 接管后**应补全 / 接管:DB 路径、API 端口、CORS、SQLite、日志目录、Weather 字段等。
+- 本文件字段全为类属性,模块加载时一次性确定。
+
 设计原则:
 1. 字段全部在模块加载时一次性读取(类属性,无副作用)。
 2. MOCK_LLM/MOCK_WEATHER 在对应 Key 缺失时默认为 true(项目方案 §12.4)。
