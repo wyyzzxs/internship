@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
+from pathlib import Path
 from typing import Any, Iterator
 
 from openai import APIStatusError, OpenAI, RateLimitError
@@ -237,18 +239,142 @@ class LLMClient:
         }
 
     def _mock_chat(self, messages: list[dict], tools: list | None) -> dict:
-        """Mock 模式:始终返回无 tool_call 的纯文本 JSON 行程。
+        """Mock 模式(第三轮修复):**根据 messages 里的 user 请求动态生成 plan**。
 
-        内容与 data/mock_plans/wuhan_3day_1500.json 严格同构,
-        PlanAgent 提取 JSON → Pydantic 校验即可通过。
+        行为:
+        1. 解析最后一条 user message(USER_PROMPT_TEMPLATE 格式),提取 city/days/budget/...
+        2. 优先尝试 data/mock_plans/{slug}_{days}day_{budget}.json
+        3. 找不到 → data/mock_plans/wuhan_3day_1500.json
+        4. 找不到 → 内置 _MOCK_PLAN_TEXT(武汉 3 天 1500 情侣)
+        5. 还会模拟 1 次 search_attractions 工具调用,让 tools_called 看起来真实
         """
-        logger.info("MOCK_LLM=true, 返回 mock 行程文本(len=%d)", len(self._MOCK_PLAN_TEXT))
+        req = self._parse_user_request(messages)
+        plan_text = self._find_mock_plan_text(req)
+
+        # 第一轮:模拟 1 次工具调用,让 tools_called 不空
+        if tools and any(getattr(t, "name", "") == "search_attractions" for t in tools):
+            # 检查 messages 里是否已有 tool 消息(第二轮就不重复调)
+            has_tool_message = any(m.get("role") == "tool" for m in messages)
+            if not has_tool_message:
+                logger.info("MOCK_LLM=true, 模拟第 1 轮:调 search_attractions")
+                return {
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": [
+                        {
+                            "id": "mock_call_001",
+                            "name": "search_attractions",
+                            "arguments": {
+                                "city": req.get("city", "武汉"),
+                                "tags": req.get("preferences", ["历史文化"]),
+                                "top_k": 5,
+                            },
+                        }
+                    ],
+                    "raw": None,
+                }
+
+        logger.info(
+            "MOCK_LLM=true, 返 mock 行程文本(city=%s, days=%s, budget=%s)",
+            req.get("city"), req.get("days"), req.get("budget"),
+        )
         return {
             "role": "assistant",
-            "content": self._MOCK_PLAN_TEXT,
+            "content": plan_text,
             "tool_calls": None,
             "raw": None,
         }
+
+    def _parse_user_request(self, messages: list[dict]) -> dict:
+        """从 messages 倒序找最后一条 user message,正则提取 city/days/budget/people/start_date。"""
+        req: dict = {}
+        for m in reversed(messages):
+            if m.get("role") == "user":
+                content = m.get("content", "")
+                # USER_PROMPT_TEMPLATE 格式:
+                #   城市:{city}
+                #   天数:{days}
+                #   出发日期:{start_date}
+                #   预算:{budget} 元
+                #   偏好:{preferences}
+                #   同行人群:{people}
+                m_city = re.search(r"城市[:：]\s*(\S+)", content)
+                m_days = re.search(r"天数[:：]\s*(\d+)", content)
+                m_date = re.search(r"出发日期[:：]\s*(\S+)", content)
+                m_budget = re.search(r"预算[:：]\s*([\d.]+)\s*元", content)
+                m_prefs = re.search(r"偏好[:：]\s*\[([^\]]*)\]", content)
+                m_people = re.search(r"同行人群[:：]\s*(\S+)", content)
+
+                if m_city:
+                    req["city"] = m_city.group(1)
+                if m_days:
+                    req["days"] = int(m_days.group(1))
+                if m_date:
+                    req["start_date"] = m_date.group(1)
+                if m_budget:
+                    req["budget"] = float(m_budget.group(1))
+                if m_prefs:
+                    # 解析 ["历史","美食"] 这种
+                    prefs_str = m_prefs.group(1)
+                    req["preferences"] = [p.strip().strip('"\'') for p in prefs_str.split(",") if p.strip()]
+                if m_people:
+                    req["people"] = m_people.group(1)
+                break
+        return req
+
+    def _find_mock_plan_text(self, req: dict) -> str:
+        """根据 request 找最匹配的 mock plan。
+
+        候选路径(按优先级,第三轮修复):
+        1. data/mock_plans/{slug}_{days}day_{budget}.json    ← 精确匹配
+        2. data/mock_plans/{slug}_{days}day_*.json          ← 同城市同 days 任意 budget (glob)
+        3. data/mock_plans/{slug}_*day_*.json                ← 同城市任意 days/budget (glob)
+        4. data/mock_plans/wuhan_3day_1500.json              ← 终极兜底
+        5. _MOCK_PLAN_TEXT                                    ← 内存兜底
+        """
+        city = req.get("city", "武汉")
+        try:
+            days_n = int(req.get("days", 3))
+        except (TypeError, ValueError):
+            days_n = 3
+        try:
+            budget_n = int(req.get("budget", 1500))
+        except (TypeError, ValueError):
+            budget_n = 1500
+
+        city_slug_map = {
+            "武汉": "wuhan", "西安": "xian", "成都": "chengdu",
+            "北京": "beijing", "杭州": "hangzhou", "厦门": "xiamen",
+        }
+        slug = city_slug_map.get(city, city.lower().replace(" ", "_"))
+
+        data_dir = Config.DATA_DIR / "mock_plans"
+
+        # 1. 精确匹配
+        candidates: list[Path] = [
+            data_dir / f"{slug}_{days_n}day_{budget_n}.json",
+        ]
+        # 2. 同城市同 days 任意 budget(glob)
+        candidates.extend(sorted(data_dir.glob(f"{slug}_{days_n}day_*.json")))
+        # 3. 同城市任意 days/budget(glob,排除 step 1 重复)
+        candidates.extend(
+            sorted(p for p in data_dir.glob(f"{slug}_*day_*.json") if p not in candidates)
+        )
+        # 4. 终极兜底
+        candidates.append(data_dir / "wuhan_3day_1500.json")
+
+        for path in candidates:
+            if path.exists():
+                try:
+                    with path.open("r", encoding="utf-8") as f:
+                        data = json.load(f)
+                    logger.info("MOCK 找到演示数据: %s", path)
+                    return json.dumps(data, ensure_ascii=False)
+                except (OSError, json.JSONDecodeError) as exc:
+                    logger.warning("MOCK 演示数据 %s 读取失败: %s", path, exc)
+
+        logger.info("MOCK 没有匹配的演示数据,用内置 _MOCK_PLAN_TEXT 兜底")
+        return self._MOCK_PLAN_TEXT
 
     # 内容与 data/mock_plans/wuhan_3day_1500.json 同步,
     # 便于 PlanAgent 在 mock 模式下提取出的 JSON 直接通过 Pydantic 校验。

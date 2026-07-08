@@ -61,6 +61,83 @@ def test_mock_mode_short_circuits(monkeypatch):
     assert out["raw"] is None
 
 
+def test_mock_responds_to_city_in_request(monkeypatch):
+    """第三轮修复:LLM mock 必须根据 request 动态生成 plan(防回归)。
+
+    验证:用户请求"西安 3 天 3500 亲子"时,mock 返回的 plan.trip_summary.city
+    必须是"西安"(不是固定返武汉)。
+    """
+    monkeypatch.setattr("backend.config.Config.MOCK_LLM", True)
+    client = LLMClient()
+    # 用真实的 USER_PROMPT_TEMPLATE 格式
+    from backend.agents.prompts import USER_PROMPT_TEMPLATE
+    user_msg = USER_PROMPT_TEMPLATE.format(
+        city="西安", days=3, start_date="2025-07-08", budget=3500,
+        preferences=["历史", "亲子"], people="亲子", departure="武汉",
+    )
+    out = client.chat(
+        messages=[{"role": "user", "content": user_msg}],
+        tools=None,  # 不用工具,直接看 mock 返的 content
+    )
+    import json
+    plan = json.loads(out["content"])
+    assert plan["trip_summary"]["city"] == "西安", (
+        f"mock 应返西安,实际 {plan['trip_summary']['city']}"
+    )
+    assert plan["trip_summary"]["days"] == 3
+    assert plan["trip_summary"]["total_budget"] == 3500
+    assert plan["trip_summary"]["people"] == "亲子"
+
+
+def test_mock_simulates_search_attractions_first_call(monkeypatch):
+    """第三轮修复:mock 第一次调 search_attractions 工具,让 tools_called 不空。"""
+    from langchain_core.tools import tool
+
+    @tool
+    def search_attractions(city: str) -> str:
+        """mock 测试用"""
+        return '{"attractions": []}'
+
+    monkeypatch.setattr("backend.config.Config.MOCK_LLM", True)
+    client = LLMClient()
+    out = client.chat(
+        messages=[{"role": "user", "content": "test"}],
+        tools=[search_attractions],
+    )
+    # 第一次应有 tool_call
+    assert out["tool_calls"] is not None
+    assert len(out["tool_calls"]) == 1
+    assert out["tool_calls"][0]["name"] == "search_attractions"
+    # content 为 None(等工具结果)
+    assert out["content"] is None
+
+
+def test_mock_returns_plan_after_tool_message(monkeypatch):
+    """第三轮修复:第 2 次(messages 里已有 tool 消息)返 plan,不再调工具。"""
+    from langchain_core.tools import tool
+
+    @tool
+    def search_attractions(city: str) -> str:
+        """mock 测试用"""
+        return '{"attractions": []}'
+
+    monkeypatch.setattr("backend.config.Config.MOCK_LLM", True)
+    client = LLMClient()
+    # messages 已有 tool 消息 → 第 2 轮,直接返 plan
+    out = client.chat(
+        messages=[
+            {"role": "user", "content": "test"},
+            {"role": "tool", "content": "[]", "tool_call_id": "x", "name": "search_attractions"},
+        ],
+        tools=[search_attractions],
+    )
+    assert out["tool_calls"] is None
+    assert out["content"]
+    import json
+    plan = json.loads(out["content"])
+    assert "trip_summary" in plan
+
+
 def test_retry_then_success(monkeypatch):
     """前 2 次 429,第 3 次成功 - 验证指数退避 + 最终成功。"""
     # 用字符串路径:pytest 在执行时动态解析,避免 test_config.py reload 后类身份变化

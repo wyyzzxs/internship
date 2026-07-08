@@ -1,0 +1,166 @@
+{
+  "trip_summary": {
+    "city": "武汉",
+    "days": 2,
+    "start_date": "2025-07-08",
+    "end_date": "2025-07-09",
+    "total_budget": 800,
+    "people": "独自"
+  },
+  "weather": [
+    {
+      "date": "2025-07-08",
+      "weather": "晴",
+      "temp_high": 33,
+      "temp_low": 26,
+      "suggestion": "适合户外"
+    },
+    {
+      "date": "2025-07-09",
+      "weather": "多云",
+      "temp_high": 34,
+      "temp_low": 27,
+      "suggestion": "适合户外"
+    }
+  ],
+  "days": [
+    {
+      "day": 1,
+      "date": "2025-07-08",
+      "items": [
+        {
+          "time": "09:00",
+          "type": "景点",
+          "name": "武汉大学",
+          "duration_hours": 2,
+          "cost": 0,
+          "lat": 30.5418,
+          "lng": 114.365,
+          "description": "樱花城堡,免费",
+          "emoji": "🎓"
+        },
+        {
+          "time": "12:00",
+          "type": "餐饮",
+          "name": "户部巷午餐",
+          "duration_hours": 1,
+          "cost": 30,
+          "lat": 30.5472,
+          "lng": 114.3061,
+          "description": "汉味小吃,学生党首选",
+          "emoji": "🍜"
+        },
+        {
+          "time": "14:00",
+          "type": "景点",
+          "name": "东湖绿道",
+          "duration_hours": 3,
+          "cost": 0,
+          "lat": 30.5505,
+          "lng": 114.3708,
+          "description": "免费骑行,湖光山色",
+          "emoji": "🌸"
+        },
+        {
+          "time": "19:00",
+          "type": "餐饮",
+          "name": "青旅晚餐",
+          "duration_hours": 1,
+          "cost": 25,
+          "lat": 30.585,
+          "lng": 114.272,
+          "description": "经济型晚餐",
+          "emoji": "🥘"
+        },
+        {
+          "time": "20:00",
+          "type": "住宿",
+          "name": "青年旅舍(床位)",
+          "duration_hours": 10,
+          "cost": 80,
+          "lat": 30.585,
+          "lng": 114.272,
+          "description": "学生党青旅床位,干净安全",
+          "emoji": "🛏️"
+        }
+      ],
+      "day_cost": 135
+    },
+    {
+      "day": 2,
+      "date": "2025-07-09",
+      "items": [
+        {
+          "time": "09:00",
+          "type": "景点",
+          "name": "湖北省博物馆",
+          "duration_hours": 2,
+          "cost": 0,
+          "lat": 30.5647,
+          "lng": 114.3396,
+          "description": "曾侯乙编钟,免费但需预约",
+          "emoji": "🏛️"
+        },
+        {
+          "time": "12:00",
+          "type": "餐饮",
+          "name": "粮道街午餐",
+          "duration_hours": 1,
+          "cost": 30,
+          "lat": 30.55,
+          "lng": 114.33,
+          "description": "学生党最爱,小吃平价",
+          "emoji": "🍜"
+        },
+        {
+          "time": "14:00",
+          "type": "景点",
+          "name": "江汉路步行街",
+          "duration_hours": 2,
+          "cost": 0,
+          "lat": 30.5905,
+          "lng": 114.272,
+          "description": "免费逛街,武汉老字号",
+          "emoji": "🛍️"
+        },
+        {
+          "time": "19:00",
+          "type": "餐饮",
+          "name": "吉庆街晚餐",
+          "duration_hours": 1.5,
+          "cost": 35,
+          "lat": 30.588,
+          "lng": 114.2705,
+          "description": "老字号美食,平价",
+          "emoji": "🥘"
+        },
+        {
+          "time": "21:00",
+          "type": "住宿",
+          "name": "青年旅舍(床位)",
+          "duration_hours": 8,
+          "cost": 80,
+          "lat": 30.585,
+          "lng": 114.272,
+          "description": "第二晚青旅",
+          "emoji": "🛏️"
+        }
+      ],
+      "day_cost": 145
+    }
+  ],
+  "budget_breakdown": {
+    "交通": 100,
+    "住宿": 160,
+    "门票": 0,
+    "餐饮": 120,
+    "其他": 30
+  },
+  "tips": [
+    "学生党 800 元够玩 2 天,主打免费文化地标",
+    "武汉博物馆周一闭馆,本次行程周二开始不受影响",
+    "东湖绿道免费,推荐租共享单车环湖骑行",
+    "青旅床位约 40-80 元/晚,提前 1 周预订更便宜",
+    "避开收费景点:黄鹤楼(80 元)/省博免费/东湖免费"
+  ]
+}

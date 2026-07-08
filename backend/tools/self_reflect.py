@@ -35,9 +35,11 @@ def _self_reflect_impl(plan: dict, request: dict) -> dict:
     suggestion: str | None = None
 
     # 1) 预算超支检查(允许 5% 溢出)
+    # 第三轮修复:优先用 plan.trip_summary.total_budget(更准),fallback 到 request.budget
     breakdown = plan.get("budget_breakdown") or {}
     total_cost = sum(float(v or 0) for v in breakdown.values())
-    budget = float(request.get("budget") or 0)
+    summary = plan.get("trip_summary") or {}
+    budget = float(summary.get("total_budget") or request.get("budget") or 0)
     if budget > 0 and total_cost > budget * 1.05:
         over_amount = round(total_cost - budget, 2)
         issues.append(f"预算超支 {over_amount} 元(超出 {over_amount/budget*100:.1f}%)")

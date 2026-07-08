@@ -30,6 +30,7 @@ import json
 import logging
 import re
 import sys
+import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Optional
@@ -194,6 +195,7 @@ class PlanAgent:
 
             return PlanResponse(
                 success=True,
+                session_id=self._generate_session_id(request),
                 plan=plan,
                 tools_called=list(self._last_tools_called),
             ).model_dump(mode="json")
@@ -650,6 +652,7 @@ class PlanAgent:
                     plan = Plan.model_validate(data)
                     return PlanResponse(
                         success=True,
+                        session_id=self._generate_session_id(request),
                         plan=plan,
                         tools_called=["fallback"],
                         fallback=True,
@@ -661,10 +664,21 @@ class PlanAgent:
         minimal = self._minimal_plan(request)
         return PlanResponse(
             success=True,
+            session_id=self._generate_session_id(request),
             plan=minimal,
             tools_called=["fallback_minimal"],
             fallback=True,
         ).model_dump(mode="json")
+
+    @staticmethod
+    def _generate_session_id(request: dict) -> str:
+        """第三轮新增:后端自动生成 session_id(消除文档/代码冲突)。
+
+        格式:`ses_{YYYYMMDD}_{uuid4前8位}`
+        D 接管后可以忽略这个字段,改用 FastAPI 层生成。
+        """
+        today = datetime.now().strftime("%Y%m%d")
+        return f"ses_{today}_{uuid.uuid4().hex[:8]}"
 
     def _minimal_plan(self, request: dict) -> Plan:
         """在内存里塞一份最小 Plan,保证任何 request 都能返回非空结构。"""
