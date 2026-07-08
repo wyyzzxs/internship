@@ -1,0 +1,167 @@
+{
+  "trip_summary": {
+    "city": "成都",
+    "days": 2,
+    "start_date": "2025-07-08",
+    "end_date": "2025-07-09",
+    "total_budget": 2000,
+    "people": "朋友"
+  },
+  "weather": [
+    {
+      "date": "2025-07-08",
+      "weather": "多云",
+      "temp_high": 31,
+      "temp_low": 23,
+      "suggestion": "适合户外"
+    },
+    {
+      "date": "2025-07-09",
+      "weather": "小雨",
+      "temp_high": 28,
+      "temp_low": 22,
+      "suggestion": "建议安排室内活动"
+    }
+  ],
+  "days": [
+    {
+      "day": 1,
+      "date": "2025-07-08",
+      "items": [
+        {
+          "time": "10:00",
+          "type": "景点",
+          "name": "宽窄巷子",
+          "duration_hours": 2,
+          "cost": 0,
+          "lat": 30.6740,
+          "lng": 104.0612,
+          "description": "清代古街,成都老字号小吃和茶馆聚集地",
+          "emoji": "🏮"
+        },
+        {
+          "time": "12:30",
+          "type": "餐饮",
+          "name": "小龙坎火锅(宽窄巷子店)",
+          "duration_hours": 1.5,
+          "cost": 120,
+          "lat": 30.6745,
+          "lng": 104.0620,
+          "description": "老火锅,人均 100 元的麻辣鲜香",
+          "emoji": "🌶️"
+        },
+        {
+          "time": "14:30",
+          "type": "景点",
+          "name": "锦里古街",
+          "duration_hours": 2,
+          "cost": 0,
+          "lat": 30.6427,
+          "lng": 104.0462,
+          "description": "三国主题古街,小吃和手工艺品",
+          "emoji": "🏯"
+        },
+        {
+          "time": "17:00",
+          "type": "景点",
+          "name": "武侯祠",
+          "duration_hours": 1.5,
+          "cost": 50,
+          "lat": 30.6432,
+          "lng": 104.0475,
+          "description": "三国文化圣地,旁边就是锦里",
+          "emoji": "⛩️"
+        },
+        {
+          "time": "19:30",
+          "type": "餐饮",
+          "name": "玉林串串香(总店)",
+          "duration_hours": 1.5,
+          "cost": 80,
+          "lat": 30.6280,
+          "lng": 104.0750,
+          "description": "成都本地人最爱的串串店,人均 60 元",
+          "emoji": "🍢"
+        }
+      ],
+      "day_cost": 250
+    },
+    {
+      "day": 2,
+      "date": "2025-07-09",
+      "items": [
+        {
+          "time": "10:00",
+          "type": "景点",
+          "name": "大熊猫繁育研究基地",
+          "duration_hours": 3,
+          "cost": 55,
+          "lat": 30.7331,
+          "lng": 104.1430,
+          "description": "看国宝大熊猫,必去打卡点",
+          "emoji": "🐼"
+        },
+        {
+          "time": "13:30",
+          "type": "餐饮",
+          "name": "龙抄手(春熙路总店)",
+          "duration_hours": 1,
+          "cost": 50,
+          "lat": 30.6580,
+          "lng": 104.0810,
+          "description": "成都小吃集合,钟水饺龙抄手担担面",
+          "emoji": "🥟"
+        },
+        {
+          "time": "15:00",
+          "type": "景点",
+          "name": "春熙路",
+          "duration_hours": 1.5,
+          "cost": 0,
+          "lat": 30.6590,
+          "lng": 104.0815,
+          "description": "成都最繁华商业街",
+          "emoji": "🛍️"
+        },
+        {
+          "time": "17:00",
+          "type": "景点",
+          "name": "太古里",
+          "duration_hours": 1.5,
+          "cost": 0,
+          "lat": 30.6580,
+          "lng": 104.0830,
+          "description": "古朴与现代结合的开放式街区",
+          "emoji": "🏙️"
+        },
+        {
+          "time": "19:00",
+          "type": "餐饮",
+          "name": "双流老妈兔头",
+          "duration_hours": 1.5,
+          "cost": 90,
+          "lat": 30.6300,
+          "lng": 104.0900,
+          "description": "成都特色兔头,辣得过瘾",
+          "emoji": "🐰"
+        }
+      ],
+      "day_cost": 195
+    }
+  ],
+  "budget_breakdown": {
+    "交通": 350,
+    "住宿": 600,
+    "门票": 105,
+    "餐饮": 490,
+    "其他": 155
+  },
+  "tips": [
+    "Day2 有小雨,把下午的春熙路/太古里改室内商场,熊猫基地雨具必备",
+    "成都美食多,行程留白,逛吃逛吃更尽兴",
+    "火锅串串建议午餐或晚餐吃,中午吃辣下午喝茶解油",
+    "大熊猫基地建议早 9 点到,人少熊猫活跃",
+    "宽窄巷子和锦里二选一即可,内容重复度较高",
+    "春熙路太古里地铁直达,周边奶茶小吃摊便宜"
+  ]
+}
