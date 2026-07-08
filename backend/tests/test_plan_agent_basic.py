@@ -107,8 +107,9 @@ def test_wuhan_3day_1500_returns_plan(mock_llm_ok, mock_tools):
     assert result["plan"]["trip_summary"]["days"] == 3
     assert result["plan"]["trip_summary"]["total_budget"] == 1500
     assert result["plan"]["trip_summary"]["people"] == "情侣"
-    # LLM mock 返回 1 天的 plan(测试数据简化)
-    assert len(result["plan"]["days"]) == 1
+    # 第二轮 reflect-loop 会检测"天数不足"并补到 3 天,所以最终 days 数 == 3
+    assert len(result["plan"]["days"]) == 3
+    # 第一个 day 首项仍是 LLM mock 返回的黄鹤楼
     assert result["plan"]["days"][0]["items"][0]["name"] == "黄鹤楼"
 
 
