@@ -1,0 +1,192 @@
+{
+  "trip_summary": {
+    "city": "西安",
+    "days": 3,
+    "start_date": "2025-07-08",
+    "end_date": "2025-07-10",
+    "total_budget": 3500,
+    "people": "亲子"
+  },
+  "weather": [
+    {
+      "date": "2025-07-08",
+      "weather": "晴",
+      "temp_high": 35,
+      "temp_low": 24,
+      "suggestion": "高温注意防晒"
+    },
+    {
+      "date": "2025-07-09",
+      "weather": "多云",
+      "temp_high": 33,
+      "temp_low": 23,
+      "suggestion": "适合户外"
+    },
+    {
+      "date": "2025-07-10",
+      "weather": "晴",
+      "temp_high": 34,
+      "temp_low": 24,
+      "suggestion": "高温注意防晒"
+    }
+  ],
+  "days": [
+    {
+      "day": 1,
+      "date": "2025-07-08",
+      "items": [
+        {
+          "time": "09:00",
+          "type": "景点",
+          "name": "秦始皇兵马俑",
+          "duration_hours": 3,
+          "cost": 120,
+          "lat": 34.3853,
+          "lng": 109.2733,
+          "description": "世界八大奇迹之一,带孩子感受历史震撼",
+          "emoji": "🏛️"
+        },
+        {
+          "time": "13:00",
+          "type": "餐饮",
+          "name": "临潼石榴园农家菜",
+          "duration_hours": 1.5,
+          "cost": 80,
+          "lat": 34.3800,
+          "lng": 109.2700,
+          "description": "当地特色农家菜,适合亲子",
+          "emoji": "🍜"
+        },
+        {
+          "time": "15:00",
+          "type": "景点",
+          "name": "秦始皇陵",
+          "duration_hours": 1.5,
+          "cost": 0,
+          "lat": 34.3845,
+          "lng": 109.2650,
+          "description": "与兵马俑联游,免费参观外围",
+          "emoji": "⛰️"
+        },
+        {
+          "time": "18:30",
+          "type": "餐饮",
+          "name": "回民街晚餐",
+          "duration_hours": 1.5,
+          "cost": 100,
+          "lat": 34.2650,
+          "lng": 108.9420,
+          "description": "陕西小吃集合,孩子最爱",
+          "emoji": "🥘"
+        }
+      ],
+      "day_cost": 300
+    },
+    {
+      "day": 2,
+      "date": "2025-07-09",
+      "items": [
+        {
+          "time": "09:30",
+          "type": "景点",
+          "name": "陕西历史博物馆",
+          "duration_hours": 2.5,
+          "cost": 0,
+          "lat": 34.2216,
+          "lng": 108.9537,
+          "description": "免费但需预约,亲子历史启蒙首选",
+          "emoji": "🏛️"
+        },
+        {
+          "time": "13:00",
+          "type": "餐饮",
+          "name": "永兴坊陕西小吃",
+          "duration_hours": 1.5,
+          "cost": 90,
+          "lat": 34.2300,
+          "lng": 108.9480,
+          "description": "陕西八大菜系集合",
+          "emoji": "🍲"
+        },
+        {
+          "time": "15:30",
+          "type": "景点",
+          "name": "大雁塔",
+          "duration_hours": 1.5,
+          "cost": 50,
+          "lat": 34.2196,
+          "lng": 108.9637,
+          "description": "登塔俯瞰西安城,孩子超喜欢",
+          "emoji": "🗼"
+        },
+        {
+          "time": "19:00",
+          "type": "景点",
+          "name": "大雁塔北广场音乐喷泉",
+          "duration_hours": 1,
+          "cost": 0,
+          "lat": 34.2225,
+          "lng": 108.9650,
+          "description": "亚洲最大音乐喷泉,免费观赏",
+          "emoji": "⛲"
+        }
+      ],
+      "day_cost": 140
+    },
+    {
+      "day": 3,
+      "date": "2025-07-10",
+      "items": [
+        {
+          "time": "09:00",
+          "type": "景点",
+          "name": "华清宫",
+          "duration_hours": 3,
+          "cost": 120,
+          "lat": 34.3580,
+          "lng": 109.2090,
+          "description": "唐玄宗杨贵妃故事发生地,长恨歌实景演出",
+          "emoji": "🏯"
+        },
+        {
+          "time": "13:00",
+          "type": "餐饮",
+          "name": "华清宫御膳坊",
+          "duration_hours": 1.5,
+          "cost": 120,
+          "lat": 34.3585,
+          "lng": 109.2085,
+          "description": "宫廷菜体验,孩子大开眼界",
+          "emoji": "🥢"
+        },
+        {
+          "time": "15:00",
+          "type": "景点",
+          "name": "骊山国家森林公园",
+          "duration_hours": 1.5,
+          "cost": 75,
+          "lat": 34.3600,
+          "lng": 109.2150,
+          "description": "坐缆车上山,孩子超兴奋",
+          "emoji": "⛰️"
+        }
+      ],
+      "day_cost": 315
+    }
+  ],
+  "budget_breakdown": {
+    "交通": 800,
+    "住宿": 1500,
+    "门票": 365,
+    "餐饮": 390,
+    "其他": 445
+  },
+  "tips": [
+    "兵马俑建议请讲解员,孩子更容易理解历史",
+    "陕西历史博物馆周一闭馆,本次行程周二开始不受影响",
+    "Day2 已避开 14-16 点午休时间(午餐+大雁塔登塔)",
+    "高温天气记得给孩子带防晒霜和水壶",
+    "回民街肉夹馍和 biangbiang 面是孩子最爱",
+    "大雁塔北广场音乐喷泉 21:00 开始,提前占位"
+  ]
+}
