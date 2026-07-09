@@ -1,78 +1,166 @@
-"""Standalone Streamlit demo for member B features."""
+"""AI 智能旅游规划师 — 主入口。"""
 
 from __future__ import annotations
 
-from datetime import date
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 import streamlit as st
 
-from frontend.components.checklist_panel import render_checklist_panel
-from frontend.components.poi_panel import render_poi_panel
-from frontend.components.weather_panel import render_weather_panel
-from frontend.utils.api_client import generate_checklist, get_nearby_poi, get_weather
+from components.budget_pie import render_budget_pie
+from components.card_wall import render_card_wall
+from components.chat_box import render_chat_box
+from components.empty_state import render_empty_state
+from components.export_panel import render_export_panel
+from components.input_form import render_input_form
+from components.loading import render_skeleton, run_agent_progress
+from components.map_view import render_map
+from components.summary_metrics import render_summary_metrics
+from components.timeline import render_timeline
+from components.trip_compare import render_trip_compare
+from themes import get_theme_css
+from utils.api_client import USE_MOCK, fetch_plan
+from utils.i18n import t
 
+st.set_page_config(
+    page_title="AI 智能旅游规划师",
+    page_icon="🧭",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-CITY_COORDS = {
-    "武汉": {"lat": 30.5438, "lng": 114.3055, "spot": "黄鹤楼"},
-    "西安": {"lat": 34.3840, "lng": 109.2780, "spot": "秦始皇帝陵博物院"},
-    "成都": {"lat": 30.7390, "lng": 104.1500, "spot": "成都大熊猫繁育研究基地"},
-    "北京": {"lat": 39.9163, "lng": 116.3972, "spot": "故宫博物院"},
-    "杭州": {"lat": 30.2428, "lng": 120.1502, "spot": "西湖"},
-    "厦门": {"lat": 24.4473, "lng": 118.0670, "spot": "鼓浪屿"},
-}
-
-
-st.set_page_config(page_title="AI 智能旅游规划师", layout="wide")
-st.title("AI 智能旅游规划师")
-
-with st.sidebar:
-    city = st.selectbox("目的地", list(CITY_COORDS))
-    days = st.slider("出行天数", 1, 7, 3)
-    start_date = st.date_input("出发日期", value=date.today())
-    people_type = st.selectbox("同行人群", ["朋友", "独自", "情侣", "亲子", "商务"])
-    poi_type = st.radio(
-        "周边类型",
-        options=["restaurant", "hotel", "attraction", "toilet"],
-        index=0,
-        horizontal=True,
-    )
-    radius_m = st.slider("周边范围", 300, 3000, 1000, step=100)
-
-coord = CITY_COORDS[city]
+for key, default in [
+    ("plan", None), ("plan_response", None), ("session_id", ""),
+    ("theme", "travel_night"), ("lang", "zh"), ("plan_history", []),
+    ("show_heatmap", False), ("generating", False),
+]:
+    if key not in st.session_state:
+        st.session_state[key] = default
 
 try:
-    weather_payload = get_weather(city, start_date.isoformat(), days)
-except Exception as exc:
-    st.error(f"天气接口调用失败：{exc}")
-    st.stop()
+    from streamlit_lottie import st_lottie
+    import requests
 
-tab_weather, tab_poi, tab_checklist = st.tabs(["天气", "周边", "清单"])
+    @st.cache_data
+    def _lottie(url: str):
+        r = requests.get(url, timeout=5)
+        return r.json() if r.status_code == 200 else None
 
-with tab_weather:
-    render_weather_panel(weather_payload)
+    LOTTIE_URL = "https://assets5.lottiefiles.com/packages/lf20_usmfxgpd.json"
+except ImportError:
+    st_lottie = None
 
-with tab_poi:
-    st.caption(f"中心点：{coord['spot']}")
-    try:
-        poi_payload = get_nearby_poi(
-            lat=coord["lat"],
-            lng=coord["lng"],
-            city=city,
-            poi_type=poi_type,
-            radius_m=radius_m,
+
+def _section(title: str) -> None:
+    st.markdown(f'<p class="section-heading">{title}</p>', unsafe_allow_html=True)
+
+
+def main() -> None:
+    st.markdown(get_theme_css(st.session_state.get("theme", "travel_night")), unsafe_allow_html=True)
+    lang = st.session_state.get("lang", "zh")
+
+    with st.sidebar:
+        request = render_input_form(lang)
+        lang = st.session_state.get("lang", lang)
+        st.divider()
+        generate = st.button(t("generate", lang), type="primary", use_container_width=True)
+        st.session_state.show_heatmap = st.checkbox(
+            t("heatmap", lang), value=st.session_state.show_heatmap
         )
-        render_poi_panel(poi_payload)
-    except Exception as exc:
-        st.error(f"周边 POI 接口调用失败：{exc}")
 
-with tab_checklist:
-    demo_plan = {
-        "itinerary": [
-            {"items": [{"name": coord["spot"]}, {"name": "城市美食街"}, {"name": "夜景散步"}]}
-        ]
-    }
-    try:
-        checklist = generate_checklist(demo_plan, weather_payload, people_type)
-        render_checklist_panel(checklist)
-    except Exception as exc:
-        st.error(f"清单接口调用失败：{exc}")
+    st.markdown(
+        f"""
+        <div class="hero-panel">
+            <p class="main-header" style="margin:0;">{t("title", lang)}</p>
+            <p class="hero-subtitle">{t("subtitle", lang)}</p>
+            <span class="mode-badge">{t("mock_mode", lang) if USE_MOCK else t("api_mode", lang)}</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    if generate:
+        st.session_state.generating = True
+        placeholder = st.empty()
+        with placeholder.container():
+            if st_lottie:
+                anim = _lottie(LOTTIE_URL)
+                if anim:
+                    st_lottie(anim, height=120, key="loading_lottie")
+            run_agent_progress()
+            render_skeleton()
+        response = fetch_plan(request)
+        placeholder.empty()
+        st.session_state.generating = False
+        if response.get("success"):
+            prev = st.session_state.plan
+            st.session_state.plan_response = response
+            st.session_state.plan = response["plan"]
+            st.session_state.session_id = response.get("session_id", "")
+            if prev:
+                hist = st.session_state.plan_history
+                if not hist or hist[-1] != prev:
+                    hist.append(prev)
+            st.session_state.plan_history.append(response["plan"])
+            st.toast("行程生成成功")
+            st.rerun()
+        else:
+            st.error(response.get("error", "生成失败，已保留 Mock 数据。"))
+
+    plan = st.session_state.plan
+    tabs = st.tabs([
+        t("tab_itinerary", lang), t("tab_map", lang),
+        t("tab_chat", lang), t("tab_budget", lang),
+        t("tab_export", lang), t("tab_compare", lang),
+    ])
+
+    with tabs[0]:
+        if plan:
+            render_summary_metrics(plan)
+            st.divider()
+            render_timeline(plan)
+            _section(t("section_attractions", lang))
+            render_card_wall(plan)
+            tips = plan.get("tips", [])
+            if tips:
+                _section(t("section_tips", lang))
+                for tip in tips:
+                    st.info(tip)
+        else:
+            render_empty_state(t("empty_hint", lang))
+
+    with tabs[1]:
+        if plan:
+            render_map(plan, show_heatmap=st.session_state.show_heatmap)
+        else:
+            render_empty_state("请先生成行程。")
+
+    with tabs[2]:
+        render_chat_box(plan, st.session_state.session_id)
+
+    with tabs[3]:
+        if plan:
+            render_budget_pie(plan)
+        else:
+            render_empty_state("请先生成行程。")
+
+    with tabs[4]:
+        if plan:
+            render_export_panel(plan)
+        else:
+            st.info("请先生成行程后再导出。")
+
+    with tabs[5]:
+        hist = st.session_state.plan_history
+        plan_b = hist[-2] if len(hist) >= 2 else None
+        render_trip_compare(plan, plan_b)
+
+
+if __name__ == "__main__":
+    main()

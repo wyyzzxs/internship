@@ -13,6 +13,9 @@ streamlit-aggrid==0.3.4
 streamlit-lottie==0.0.5
 streamlit-echarts==0.4.0
 
+# ===== 前端 Flask（可选，与 Streamlit 并行） =====
+flask==3.0.2
+
 # ===== 后端 =====
 fastapi==0.110.0
 uvicorn[standard]==0.27.1
