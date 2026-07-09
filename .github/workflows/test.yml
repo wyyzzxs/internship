@@ -1,0 +1,81 @@
+# GitHub Actions - Tests
+# 维护者:成员 A(第三轮)
+# 注意:本 yml 文件由 A commit,**不 push**(用户审过 secrets 再推)
+
+name: Tests
+
+on:
+  push:
+    branches: [main, dev, 'feat/**']
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:  # 允许手动触发
+
+# 同一个 workflow,新 push 取消旧的
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: pytest + ruff (Python 3.11 / ubuntu)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # 1. 拉代码
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. 装 Python
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
+
+      # 3. 装依赖
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-timeout pytest-mock
+
+      # 4. 跑测试 + 覆盖率
+      - name: Run pytest
+        env:
+          MOCK_LLM: 'true'
+          MOCK_WEATHER: 'true'
+          PYTHONPATH: .
+        run: |
+          pytest backend/tests/ \
+            --cov=backend \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            -v
+
+      # 5. 跑 ruff
+      - name: Run ruff
+        run: |
+          pip install ruff
+          ruff check backend/ tests/
+
+      # 6. 上传 coverage(不 fail,只是看)
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+        continue-on-error: true
+
+      # 7. 上传 coverage artifact(本地可下载)
+      - name: Upload coverage XML artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          retention-days: 30
