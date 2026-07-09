@@ -1,29 +1,27 @@
-"""search_attractions 工具 - 临时 mock 实现。
+"""Attraction search tool backed by member C's RAG retriever.
 
-⚠️ **临时越界 mock** - 方案 §8.3 / §9.2 此工具由**成员 B**负责接入 ChromaDB RAG 检索。
-   本文件由成员 A 在第二轮临时编写,仅供测试 PlanAgent.modify / reflect-loop 跑通。
-   B 接入真实 RAG 后,本文件应被删除。
-
-签名严格对齐方案 §3.3 Tool 1:`(city, tags=None, top_k=8) -> str(JSON)`
-返回值字段对齐 §5.3 Attraction 数据结构(id/name/city/category/tags/description/
-  best_duration_hours/ticket_price/lat/lng/emoji/rating)。
+The public tool contract stays compatible with PlanAgent:
+(city, tags=None, top_k=8) -> JSON string with attractions/source fields.
 """
 from __future__ import annotations
 
 import json
+import logging
+from typing import Any
 
 from langchain_core.tools import tool
 
+logger = logging.getLogger("backend.tools.search_attractions")
 
-# 8 个武汉景点 mock 数据 - 跟 data/attractions.json 字段兼容
-_MOCK_ATTRACTIONS: list[dict] = [
+
+_FALLBACK_ATTRACTIONS: list[dict[str, Any]] = [
     {
         "id": "wuhan_huanghelou",
         "name": "黄鹤楼",
         "city": "武汉",
         "category": "历史",
         "tags": ["历史", "文化", "地标", "夜景"],
-        "description": "江南三大名楼之首,登楼俯瞰长江和武汉三镇。",
+        "description": "江南三大名楼之一，适合登楼俯瞰长江和武汉三镇。",
         "best_duration_hours": 2,
         "ticket_price": 80,
         "lat": 30.5438,
@@ -37,35 +35,21 @@ _MOCK_ATTRACTIONS: list[dict] = [
         "city": "武汉",
         "category": "自然",
         "tags": ["自然", "休闲", "骑行"],
-        "description": "中国第二大城中湖,绿道全长 101 公里。",
+        "description": "武汉代表性湖泊风景区，适合骑行、散步和亲子游。",
         "best_duration_hours": 4,
         "ticket_price": 0,
         "lat": 30.5505,
         "lng": 114.3708,
-        "emoji": "🌸",
+        "emoji": "🌿",
         "rating": 4.6,
     },
     {
-        "id": "wuhan_hubuxiang",
-        "name": "户部巷",
-        "city": "武汉",
-        "category": "美食",
-        "tags": ["美食", "小吃", "夜市"],
-        "description": "汉味小吃第一巷,热干面豆皮汤包鸭脖云集。",
-        "best_duration_hours": 2,
-        "ticket_price": 0,
-        "lat": 30.5472,
-        "lng": 114.3061,
-        "emoji": "🍜",
-        "rating": 4.5,
-    },
-    {
-        "id": "wuhan_hubeibowuguan",
+        "id": "wuhan_hubei_museum",
         "name": "湖北省博物馆",
         "city": "武汉",
         "category": "历史",
-        "tags": ["历史", "文化", "亲子"],
-        "description": "曾侯乙编钟所在地,免费参观。",
+        "tags": ["历史", "文化", "亲子", "室内"],
+        "description": "曾侯乙编钟等镇馆之宝所在地，雨天和亲子场景都很适合。",
         "best_duration_hours": 2,
         "ticket_price": 0,
         "lat": 30.5647,
@@ -73,89 +57,40 @@ _MOCK_ATTRACTIONS: list[dict] = [
         "emoji": "🏛️",
         "rating": 4.8,
     },
-    {
-        "id": "wuhan_jianghanlu",
-        "name": "江汉路步行街",
-        "city": "武汉",
-        "category": "美食",
-        "tags": ["美食", "购物", "夜景"],
-        "description": "百年商业街,武汉夜生活地标。",
-        "best_duration_hours": 2,
-        "ticket_price": 0,
-        "lat": 30.5905,
-        "lng": 114.2720,
-        "emoji": "🛍️",
-        "rating": 4.4,
-    },
-    {
-        "id": "wuhan_jieqingjie",
-        "name": "吉庆街",
-        "city": "武汉",
-        "category": "美食",
-        "tags": ["美食", "夜市", "文化"],
-        "description": "武汉老字号美食街。",
-        "best_duration_hours": 1.5,
-        "ticket_price": 0,
-        "lat": 30.5880,
-        "lng": 114.2705,
-        "emoji": "🥘",
-        "rating": 4.3,
-    },
-    {
-        "id": "wuhan_changjiangdaqiao",
-        "name": "武汉长江大桥",
-        "city": "武汉",
-        "category": "历史",
-        "tags": ["历史", "地标", "夜景"],
-        "description": "万里长江第一桥。",
-        "best_duration_hours": 1.5,
-        "ticket_price": 0,
-        "lat": 30.5538,
-        "lng": 114.3125,
-        "emoji": "🌉",
-        "rating": 4.6,
-    },
-    {
-        "id": "wuhan_wuhandaxue",
-        "name": "武汉大学",
-        "city": "武汉",
-        "category": "自然",
-        "tags": ["自然", "文化", "亲子"],
-        "description": "樱花城堡,雨天可改室内博物馆。",
-        "best_duration_hours": 2,
-        "ticket_price": 0,
-        "lat": 30.5418,
-        "lng": 114.3650,
-        "emoji": "🎓",
-        "rating": 4.7,
-    },
 ]
 
 
-def _search_attractions_impl(city: str, tags: list[str] | None = None, top_k: int = 8) -> list[dict]:
-    """mock 检索:按 city 过滤,无结果兜底武汉;按 tags 模糊匹配。"""
-    rows = [a for a in _MOCK_ATTRACTIONS if a.get("city") == city]
-    if not rows:
-        rows = _MOCK_ATTRACTIONS  # 兜底:任何未支持城市都返武汉
+def _fallback_search(city: str, tags: list[str] | None, top_k: int) -> list[dict[str, Any]]:
+    rows = [row for row in _FALLBACK_ATTRACTIONS if row.get("city") == city] or _FALLBACK_ATTRACTIONS
     if tags:
-        rows = [a for a in rows if any(t in a.get("tags", []) for t in tags)] or rows
+        matched = [row for row in rows if any(tag in row.get("tags", []) for tag in tags)]
+        rows = matched or rows
     return rows[:top_k]
+
+
+def _search_attractions_impl(city: str, tags: list[str] | None = None, top_k: int = 8) -> list[dict[str, Any]]:
+    """Search attractions through RAG/Chroma, falling back to bundled JSON/mock data."""
+
+    top_k = max(1, min(int(top_k), 30))
+    try:
+        from backend.rag.retriever import TouristRetriever
+
+        results = TouristRetriever().search(city=city, tags=tags or [], top_k=top_k)
+        if results:
+            return results
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("RAG attraction search failed, using fallback: %s", exc)
+
+    return _fallback_search(city, tags, top_k)
 
 
 @tool
 def search_attractions(city: str, tags: list[str] | None = None, top_k: int = 8) -> str:
-    """根据城市和偏好标签检索景点(mock,B 接 RAG 后替换)。
+    """根据城市和偏好标签检索景点，优先使用 ChromaDB RAG，失败时使用本地数据兜底。"""
 
-    Args:
-        city: 城市名,如"武汉"
-        tags: 偏好标签列表
-        top_k: 返回数量
-
-    Returns:
-        JSON 字符串,景点列表(attractions/source 字段)。
-    """
     rows = _search_attractions_impl(city, tags, top_k)
-    return json.dumps({"attractions": rows, "source": "mock"}, ensure_ascii=False)
+    source = "rag_or_json" if rows else "empty"
+    return json.dumps({"attractions": rows, "source": source}, ensure_ascii=False)
 
 
 __all__ = ["search_attractions", "_search_attractions_impl"]
