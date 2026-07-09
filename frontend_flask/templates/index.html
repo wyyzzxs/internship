@@ -193,21 +193,38 @@
       <div class="card-grid">
         {% for a in attractions %}
         <div class="attr-card">
-          {% if a.image_b64 %}
-          <div class="attr-img" style="background-image:url('{{ a.image_b64 }}')"></div>
-          {% else %}
-          <div class="attr-img attr-img-fallback"></div>
-          {% endif %}
-          <div class="attr-body">
-            <div class="attr-name">{{ a.name }}</div>
-            <div class="attr-meta">{% if a.rating %}评分 {{ a.rating }} · {% endif %}{% if a.cost == 0 %}免费{% else %}¥{{ a.cost }}{% endif %}</div>
-            {% if a.tags %}
-            <div class="tag-row">{% for t in a.tags[:3] %}<span class="mini-tag">{{ t }}</span>{% endfor %}</div>
-            {% endif %}
-            {% if a.description %}<div class="attr-desc">{{ a.description[:80] }}{% if a.description|length > 80 %}…{% endif %}</div>{% endif %}
+          <div class="attr-card-inner">
+            <div class="attr-face attr-front {% if a.image_b64 %}has-img{% else %}no-img{% endif %}"
+                 {% if a.image_b64 %}style="background-image:url('{{ a.image_b64 }}');"{% endif %}>
+              {% if not a.image_b64 %}<div class="card-emoji">{{ a.emoji or '📍' }}</div>{% endif %}
+              <div class="attr-front-overlay">
+                <div class="attr-name">{{ a.name }}</div>
+                <div class="attr-meta">{% if a.rating %}⭐ {{ a.rating }} · {% endif %}{% if a.cost == 0 %}免费{% else %}¥{{ a.cost }}{% endif %} · {{ a.duration_hours or 2 }}h</div>
+              </div>
+            </div>
+            <div class="attr-face attr-back">
+              <strong>{{ a.name }}</strong>
+              {% if a.description %}<div>{{ a.description[:120] }}{% if a.description|length > 120 %}…{% endif %}</div>{% endif %}
+              {% if a.tags %}
+              <div style="margin-top:10px;">
+                {% for t in a.tags[:4] %}<span class="card-tag">{{ t }}</span>{% endfor %}
+              </div>
+              {% endif %}
+              {% if a.open_hours %}
+              <div style="margin-top:10px;font-size:0.78rem;color:var(--muted);">🕐 {{ a.open_hours }}</div>
+              {% endif %}
+              {% if a.photo_spots %}
+              <div style="margin-top:10px;font-weight:600;font-size:0.82rem;">📷 推荐机位</div>
+              {% for sp in a.photo_spots[:2] %}
+              <div class="spot-item">📷 {{ sp.location }} · {{ sp.best_time }}{% if sp.tip %} · {{ sp.tip }}{% endif %}</div>
+              {% endfor %}
+              {% endif %}
+              <div class="flip-hint">悬停已翻转 · 离开翻转回去</div>
+            </div>
           </div>
         </div>
         {% endfor %}
+        <div class="card-flip-hint">悬停卡片可翻转 · 背面含介绍 / 拍照机位</div>
       </div>
       {% endif %}
 

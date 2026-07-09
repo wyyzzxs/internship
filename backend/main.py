@@ -11,6 +11,9 @@ from backend.api import chat, plan, plans, qa, share
 from backend.api.travel import router as travel_router
 from backend.db.sqlite import init_db
 
+# 注:backend.api 下原 health/cities/tags/weather 是早期 mock 版,
+# 未被 include,会和 travel_router 的同名接口冲突,已删除。
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("backend")
 
