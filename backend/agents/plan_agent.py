@@ -492,15 +492,29 @@ class PlanAgent:
         messages.extend(history)
         messages.append({"role": "user", "content": user_msg})
 
+        # 简单指令白名单:只有非常明确的"换/改成/加预算/住宿"才走规则快路径。
+        # 之前关键词列表里"改"字太宽泛,"再修改一下"也会命中,导致所有对话都被截到
+        # mock 规则路径,真实 LLM 永远没机会跑。改成更精确的整词/词组匹配。
         simple_modify = any(
             keyword in message
             for keyword in (
-                "\u6362", "\u6539", "\u66ff\u6362", "\u9884\u7b97",
-                "\u52a0", "\u589e\u52a0", "\u4f4f", "\u9152\u5e97", "\u8ba2\u623f",
+                "\u6362\u666f\u70b9",          # 换景点
+                "\u6539\u6210",                # 改成
+                "\u6362\u6210",                # 换成
+                "\u66ff\u6362\u4e3a",          # 替换为
+                "\u51cf\u9884\u7b97",          # 减预算
+                "\u780d\u9884\u7b97",          # 砍预算
+                "\u52a0\u9152\u5e97",          # 加酒店
+                "\u52a0\u4f4f\u5bbf",          # 加住宿
+                "\u8ba2\u9152\u5e97",          # 订酒店
+                "\u8ba2\u623f",                # 订房
             )
-        ) or bool(re.search(r"\d{3,5}\s*(?:\u5143|\u5757|\uffe5|\xa5)?", message))
+        ) and not any(  # 但如果包含自然语言意图更强的词,优先走 LLM
+            soft in message
+            for soft in ("\u54ea\u91cc", "\u600e\u4e48", "\u4e3a\u4ec0\u4e48", "\u54ea\u4e9b", "\u4ec0\u4e48\u5730\u65b9", "\u5403\u996d", "\u98df\u5802", "\u5403\u4ec0\u4e48")
+        )
 
-        # 3. Deterministic edits first; free-form edits can still use LLM.
+        # 3. 优先真实 LLM,简单指令才走规则快路径;LLM 不可用时退到规则兜底
         if Config.MOCK_LLM or simple_modify:
             result = self._mock_modify_impl(message, current_plan)
         else:
@@ -640,7 +654,12 @@ class PlanAgent:
                 reply = f"\u5df2\u5728 Day {len(days_list)} \u672b\u5c3e\u8ffd\u52a0 1 \u665a\u4f4f\u5bbf\u3002"
 
         if reply == "\u5df2\u6309\u60a8\u7684\u8981\u6c42\u4fee\u6539\u884c\u7a0b\u3002":
-            reply = f"\u6536\u5230\u60a8\u7684\u4fee\u6539\u9700\u6c42\uff1a{message}\u3002\u5f53\u524d mock \u6a21\u5f0f\u652f\u6301\u6362\u666f\u70b9\u3001\u8c03\u9884\u7b97\u3001\u52a0\u666f\u70b9\u548c\u52a0\u4f4f\u5bbf\u3002"
+            reply = (
+                f"\u6536\u5230\u60a8\u7684\u4fee\u6539\u9700\u6c42\u3002"
+                f"\u5982\u679c\u60a8\u60f3\u8c03\u6574\u9884\u7b97\u3001\u66f4\u6362\u666f\u70b9\u3001"
+                f"\u6dfb\u52a0\u4f4f\u5bbf\u6216\u6539\u53d8\u540c\u884c\u4eba\u7fa4\uff0c"
+                f"\u8bf7\u544a\u8bc9\u6211\u5177\u4f53\u8981\u6c42\uff0c\u6211\u4f1a\u4e3a\u60a8\u91cd\u65b0\u8c03\u6574\u3002"
+            )
 
         plan["days"] = days_list
         plan["tips"] = tips

@@ -411,30 +411,104 @@ body::before {
   gap: 18px;
 }
 
+/* ── 景点翻转卡片(参考 streamlit card_wall) ── */
 .attr-card {
+  perspective: 1000px;
+  height: 320px;
+  position: relative;
+}
+
+.attr-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.attr-card:hover .attr-card-inner,
+.attr-card.flipped .attr-card-inner {
+  transform: rotateY(180deg);
+}
+
+.attr-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
-  transition: transform 0.25s, box-shadow 0.25s;
+  box-sizing: border-box;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35);
 }
 
-.attr-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 28px var(--glow);
+.attr-front { color: white; display: flex; flex-direction: column; justify-content: flex-end; }
+.attr-front.has-img { background-size: cover; background-position: center; }
+.attr-front.no-img {
+  background: linear-gradient(135deg, var(--accent), var(--accent3));
+  justify-content: center; align-items: center; text-align: center;
 }
 
-.attr-img {
-  height: 160px;
-  background-size: cover;
-  background-position: center;
-  background-color: rgba(255,107,74,0.15);
+.attr-front-overlay {
+  background: linear-gradient(transparent 25%, rgba(11,16,32,0.88));
+  padding: 18px; width: 100%; box-sizing: border-box;
 }
 
+.attr-back {
+  transform: rotateY(180deg);
+  overflow-y: auto;
+  font-size: 0.85rem;
+  padding: 18px;
+  line-height: 1.6;
+  color: var(--text);
+  backdrop-filter: blur(12px);
+}
+
+.attr-back strong { font-size: 1rem; color: var(--accent2); display: block; margin-bottom: 8px; }
+.attr-back .card-tag {
+  display: inline-block;
+  background: rgba(255,107,74,0.15);
+  color: var(--accent2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 10px;
+  margin: 3px 3px 3px 0;
+  font-size: 0.75rem;
+}
+.attr-back .spot-item {
+  font-size: 0.78rem;
+  margin: 6px 0;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid var(--accent3);
+  border-radius: 0 6px 6px 0;
+  color: var(--muted);
+}
+.attr-back .flip-hint {
+  margin-top: 10px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-align: center;
+  opacity: 0.6;
+}
+
+.card-emoji { font-size: 48px; margin-bottom: 8px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4)); }
+.attr-name { font-weight: 700; color: white; font-size: 1.05rem; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+.attr-meta { font-size: 0.85rem; opacity: 0.92; margin-top: 6px; color: rgba(255,255,255,0.95); }
 .attr-body { padding: 16px; }
-.attr-name { font-weight: 600; color: var(--text); font-size: 1rem; }
-.attr-meta { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
+.attr-body .attr-name { color: var(--text); text-shadow: none; }
+.attr-body .attr-meta { color: var(--muted); }
 .attr-desc { font-size: 0.85rem; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+.card-flip-hint {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 8px;
+}
 
 /* ── 预算 ── */
 .budget-grid {

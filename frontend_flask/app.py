@@ -146,14 +146,6 @@ def generate():
     session["show_heatmap"] = request.form.get("show_heatmap") == "on"
     try:
         resp = fetch_plan_api(form)
-        # 诊断日志
-        logging.warning(
-            "GENERATE_DIAG: success=%s keys=%s plan_type=%s plan_keys=%s",
-            resp.get("success"),
-            list(resp.keys()),
-            type(resp.get("plan")).__name__,
-            list(resp.get("plan", {}).keys()) if isinstance(resp.get("plan"), dict) else None,
-        )
         if resp.get("success") and resp.get("plan"):
             set_plan(resp["plan"], track_previous=True)
             session["session_id"] = resp.get("session_id", "")
@@ -162,10 +154,10 @@ def generate():
         else:
             session["flash_error"] = (
                 resp.get("error")
-                or f"后端未返回合法 plan(success={resp.get('success')}, plan={type(resp.get('plan')).__name__})"
+                or "后端未返回合法行程,请稍后重试"
             )
     except Exception as exc:
-        logging.exception("GENERATE_DIAG: exception")
+        logging.exception("generate failed")
         session["flash_error"] = f"生成失败:{exc}"
     return redirect(url_for("index", tab="itinerary"))
 
