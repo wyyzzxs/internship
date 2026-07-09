@@ -24,7 +24,7 @@ def _plan_to_markdown(plan: dict) -> str:
         for item in day.get("items", []):
             cost = "免费" if item.get("cost", 0) == 0 else f"¥{item['cost']}"
             lines.append(
-                f"- **{item.get('time', '')}** {item.get('emoji', '')} "
+                f"- **{item.get('time', '')}** [{item.get('type', '')}] "
                 f"{item.get('name', '')} ({cost}) — {item.get('description', '')}"
             )
         lines.append(f"- 当日花费: ¥{day.get('day_cost', 0)}")
@@ -44,15 +44,15 @@ def _plan_to_markdown(plan: dict) -> str:
 
 
 def render_export_panel(plan: dict) -> None:
-    st.subheader("📥 导出攻略")
+    st.markdown('<p class="section-heading">导出攻略</p>', unsafe_allow_html=True)
     md = _plan_to_markdown(plan)
     js = json.dumps(plan, ensure_ascii=False, indent=2)
 
     c1, c2, c3 = st.columns(3)
     with c1:
-        st.download_button("📄 Markdown", md, file_name="travel_plan.md", mime="text/markdown", use_container_width=True)
+        st.download_button("Markdown", md, file_name="travel_plan.md", mime="text/markdown", use_container_width=True)
     with c2:
-        st.download_button("📋 JSON", js, file_name="travel_plan.json", mime="application/json", use_container_width=True)
+        st.download_button("JSON", js, file_name="travel_plan.json", mime="application/json", use_container_width=True)
     with c3:
         try:
             from markdown_pdf import MarkdownPdf, Section
@@ -62,7 +62,7 @@ def render_export_panel(plan: dict) -> None:
             buf = BytesIO()
             pdf.save(buf)
             st.download_button(
-                "📕 PDF",
+                "PDF",
                 buf.getvalue(),
                 file_name="travel_plan.pdf",
                 mime="application/pdf",
@@ -70,7 +70,7 @@ def render_export_panel(plan: dict) -> None:
             )
         except Exception:
             st.download_button(
-                "📕 PDF（MD 替代）",
+                "PDF（文本替代）",
                 md,
                 file_name="travel_plan.txt",
                 mime="text/plain",

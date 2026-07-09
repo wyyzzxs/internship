@@ -30,12 +30,11 @@ from utils.i18n import t
 
 st.set_page_config(
     page_title="AI 智能旅游规划师",
-    page_icon="✈️",
+    page_icon="🧭",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Session
 for key, default in [
     ("plan", None), ("plan_response", None), ("session_id", ""),
     ("theme", "travel_night"), ("lang", "zh"), ("plan_history", []),
@@ -44,7 +43,6 @@ for key, default in [
     if key not in st.session_state:
         st.session_state[key] = default
 
-# Lottie 加载动画（P2-8）
 try:
     from streamlit_lottie import st_lottie
     import requests
@@ -59,6 +57,10 @@ except ImportError:
     st_lottie = None
 
 
+def _section(title: str) -> None:
+    st.markdown(f'<p class="section-heading">{title}</p>', unsafe_allow_html=True)
+
+
 def main() -> None:
     st.markdown(get_theme_css(st.session_state.get("theme", "travel_night")), unsafe_allow_html=True)
     lang = st.session_state.get("lang", "zh")
@@ -68,12 +70,14 @@ def main() -> None:
         lang = st.session_state.get("lang", lang)
         st.divider()
         generate = st.button(t("generate", lang), type="primary", use_container_width=True)
-        st.session_state.show_heatmap = st.checkbox("🔥 显示路线热力图", value=st.session_state.show_heatmap)
+        st.session_state.show_heatmap = st.checkbox(
+            t("heatmap", lang), value=st.session_state.show_heatmap
+        )
 
     st.markdown(
         f"""
         <div class="hero-panel">
-            <p class="main-header" style="margin:0;">✈️ {t("title", lang)}</p>
+            <p class="main-header" style="margin:0;">{t("title", lang)}</p>
             <p class="hero-subtitle">{t("subtitle", lang)}</p>
             <span class="mode-badge">{t("mock_mode", lang) if USE_MOCK else t("api_mode", lang)}</span>
         </div>
@@ -104,15 +108,16 @@ def main() -> None:
                 if not hist or hist[-1] != prev:
                     hist.append(prev)
             st.session_state.plan_history.append(response["plan"])
-            st.toast("行程生成成功！", icon="✅")
-            st.balloons()
+            st.toast("行程生成成功")
+            st.rerun()
         else:
             st.error(response.get("error", "生成失败，已保留 Mock 数据。"))
 
     plan = st.session_state.plan
     tabs = st.tabs([
         t("tab_itinerary", lang), t("tab_map", lang),
-        t("tab_chat", lang), t("tab_budget", lang), "📥 导出", "⚖️ 对比",
+        t("tab_chat", lang), t("tab_budget", lang),
+        t("tab_export", lang), t("tab_compare", lang),
     ])
 
     with tabs[0]:
@@ -120,11 +125,11 @@ def main() -> None:
             render_summary_metrics(plan)
             st.divider()
             render_timeline(plan)
-            st.subheader("🏛️ 景点卡片")
+            _section(t("section_attractions", lang))
             render_card_wall(plan)
             tips = plan.get("tips", [])
             if tips:
-                st.subheader("💡 旅行贴士")
+                _section(t("section_tips", lang))
                 for tip in tips:
                     st.info(tip)
         else:

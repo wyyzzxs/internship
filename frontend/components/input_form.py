@@ -31,11 +31,11 @@ def render_input_form(lang: str = "zh") -> dict:
                 st.session_state.plan_history.append(preset["plan"])
             else:
                 st.session_state.plan_history = [preset["plan"]]
-            st.toast(f"已加载：{demo_key}", icon="✅")
+            st.toast(f"已加载：{demo_key}")
             st.rerun()
 
     st.divider()
-    st.subheader("🎨 主题 & 语言")
+    st.subheader("外观设置")
     theme_keys = list(THEMES.keys())
     theme_labels = [THEMES[k]["label"] for k in theme_keys]
     current_theme = st.session_state.get("theme", "travel_night")

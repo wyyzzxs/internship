@@ -10,7 +10,7 @@ import streamlit as st
 from themes import THEMES
 from utils.chart_theme import base_layout, theme_palette
 
-CATEGORY_EMOJI = {"交通": "🚄", "住宿": "🏨", "门票": "🎫", "餐饮": "🍜", "其他": "🛍️"}
+CATEGORY_LABEL = {"交通": "交通", "住宿": "住宿", "门票": "门票", "餐饮": "餐饮", "其他": "其他"}
 CATEGORY_COLOR = {
     "交通": "#4cc9f0",
     "住宿": "#ff6b4a",
@@ -37,13 +37,12 @@ def _budget_table_html(breakdown: dict, total_spent: float) -> str:
     for key, value in breakdown.items():
         pct = round(value / total_spent * 100, 1) if total_spent else 0
         color = CATEGORY_COLOR.get(key, "#ff6b4a")
-        emoji = CATEGORY_EMOJI.get(key, "📌")
         bar_w = max(4, int(pct))
         rows.append(
             f"""
             <tr>
                 <td><span class="budget-cat"><span class="budget-dot" style="background:{color};"></span>
-                    {emoji} {html.escape(key)}</span></td>
+                    {html.escape(key)}</span></td>
                 <td class="budget-amt">¥{value}</td>
                 <td class="budget-pct">{pct}%</td>
                 <td class="budget-bar-cell">
@@ -152,17 +151,17 @@ def render_budget_pie(plan: dict) -> None:
 
     if total_budget and total_spent > total_budget:
         st.markdown(
-            f'<div class="budget-alert budget-alert-warn">⚠️ 超支 ¥{total_spent - total_budget}'
+            f'<div class="budget-alert budget-alert-warn">超支 ¥{total_spent - total_budget}'
             f'（预算 ¥{total_budget}，预计 ¥{total_spent}）</div>',
             unsafe_allow_html=True,
         )
     elif total_budget:
         st.markdown(
-            f'<div class="budget-alert budget-alert-ok">✅ 预算充足，剩余 ¥{total_budget - total_spent}</div>',
+            f'<div class="budget-alert budget-alert-ok">预算充足，剩余 ¥{total_budget - total_spent}</div>',
             unsafe_allow_html=True,
         )
 
-    labels = [f"{CATEGORY_EMOJI.get(k, '📌')} {k}" for k in breakdown]
+    labels = list(breakdown.keys())
     values = list(breakdown.values())
 
     col1, col2 = st.columns(2)
@@ -177,5 +176,5 @@ def render_budget_pie(plan: dict) -> None:
         if fig_bar:
             st.plotly_chart(fig_bar, use_container_width=True, config={"displayModeBar": False})
 
-    _section_title("💰 预算明细")
+    _section_title("预算明细")
     st.markdown(_budget_table_html(breakdown, total_spent), unsafe_allow_html=True)

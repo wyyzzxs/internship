@@ -4,7 +4,7 @@ from __future__ import annotations
 
 THEMES = {
     "travel_night": {
-        "label": "✈️ 旅行暗色（推荐）",
+        "label": "旅行暗色（推荐）",
         "bg": "#0b1020",
         "bg2": "#141c2f",
         "sidebar": "rgba(8, 12, 24, 0.96)",
@@ -18,7 +18,7 @@ THEMES = {
         "glow": "rgba(255, 107, 74, 0.45)",
     },
     "overview": {
-        "label": "🔴 原 overview 红",
+        "label": "Overview 红",
         "bg": "#0a0a0a",
         "bg2": "#1a0a0a",
         "sidebar": "rgba(10, 0, 0, 0.95)",
@@ -32,7 +32,7 @@ THEMES = {
         "glow": "rgba(255, 50, 50, 0.5)",
     },
     "light": {
-        "label": "☀️ 浅色",
+        "label": "浅色",
         "bg": "#f4f7fb",
         "bg2": "#e8eef5",
         "sidebar": "#ffffff",
@@ -67,6 +67,164 @@ def get_theme_css(theme_key: str) -> str:
 
     html, body, [class*="css"] {{
         font-family: 'Noto Sans SC', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        color: {t['text']};
+    }}
+
+    /* ── 全局文字：主内容区亮白，强调色回归橙/金 ── */
+    [data-testid="stAppViewContainer"] {{
+        color: {t['text']};
+    }}
+    [data-testid="stMain"] [data-testid="stMarkdownContainer"] p,
+    [data-testid="stMain"] [data-testid="stMarkdownContainer"] li {{
+        color: {t['text']};
+    }}
+
+    /* 侧边栏标题 — 橙金强调（不再全白） */
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1 {{
+        color: {t['accent']} !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.03em;
+    }}
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2 {{
+        color: {t['accent2']} !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+    }}
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3,
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {{
+        color: {t['text']} !important;
+    }}
+
+    /* 表单标签 — 金色，提高对比度 */
+    [data-testid="stWidgetLabel"], label[data-testid="stWidgetLabel"] {{
+        color: {t['accent2']} !important;
+        font-size: 0.9rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em;
+    }}
+    [data-testid="stSidebar"] hr {{
+        border-color: {t['border']} !important;
+        opacity: 0.5;
+    }}
+
+    /* ── 下拉框：选中值橙金 + 弹出层暗底亮字 ── */
+    [data-testid="stSelectbox"] [data-baseweb="select"] > div {{
+        background: rgba(8, 12, 24, 0.75) !important;
+        border-color: {t['border']} !important;
+    }}
+    [data-testid="stSelectbox"] [data-baseweb="select"] span,
+    [data-testid="stMultiSelect"] [data-baseweb="select"] span {{
+        color: {t['accent2']} !important;
+        font-weight: 500 !important;
+    }}
+
+    /* 下拉弹出菜单（修复白底浅字看不见） */
+    div[data-baseweb="popover"],
+    div[data-baseweb="popover"] > div,
+    ul[role="listbox"],
+    [data-baseweb="menu"] {{
+        background-color: #141c2f !important;
+        border: 1px solid {t['border']} !important;
+    }}
+    ul[role="listbox"] li,
+    [data-baseweb="menu"] li,
+    [role="option"],
+    [data-baseweb="menu"] [role="option"] {{
+        color: {t['text']} !important;
+        background-color: #141c2f !important;
+        font-size: 0.92rem !important;
+    }}
+    ul[role="listbox"] li:hover,
+    ul[role="listbox"] li[aria-selected="true"],
+    [data-baseweb="menu"] li:hover,
+    [role="option"]:hover,
+    [aria-selected="true"][role="option"] {{
+        background-color: rgba(255, 107, 74, 0.22) !important;
+        color: {t['accent2']} !important;
+    }}
+
+    /* 多选标签 */
+    [data-baseweb="tag"] {{
+        background: {t['accent']}28 !important;
+        border: 1px solid {t['accent']}66 !important;
+        color: {t['accent2']} !important;
+    }}
+    [data-baseweb="tag"] span {{
+        color: {t['accent2']} !important;
+    }}
+
+    /* 输入框选中文字 */
+    .stTextInput input, .stNumberInput input, .stTextArea textarea {{
+        color: {t['text']} !important;
+        background: rgba(8, 12, 24, 0.75) !important;
+        border: 1px solid {t['border']} !important;
+        caret-color: {t['accent']};
+    }}
+    .stTextInput input:focus, .stNumberInput input:focus, .stTextArea textarea:focus {{
+        border-color: {t['accent']} !important;
+        box-shadow: 0 0 0 1px {t['accent']}44 !important;
+    }}
+
+    /* 滑块 / 复选框 */
+    .stSlider label, .stCheckbox label, .stCheckbox span,
+    .stCheckbox p, .stSlider p {{
+        color: {t['text']} !important;
+    }}
+    .stSlider [data-baseweb="slider"] div[data-testid="stTickBarMin"],
+    .stSlider [data-baseweb="slider"] div[data-testid="stTickBarMax"] {{
+        color: {t['accent2']} !important;
+    }}
+
+    /* 日期输入 */
+    .stDateInput input {{
+        color: {t['text']} !important;
+        background: rgba(8, 12, 24, 0.75) !important;
+    }}
+
+    /* 提示框文字 */
+    [data-testid="stAlert"] p, [data-testid="stAlert"] div {{
+        color: {t['text']} !important;
+    }}
+    [data-testid="stAlert"][data-baseweb="notification"] {{
+        background: {t['card']} !important;
+    }}
+
+    /* 对话输入 */
+    [data-testid="stChatInput"] textarea {{
+        background: rgba(8, 12, 24, 0.65) !important;
+        color: {t['text']} !important;
+        border: 1px solid {t['border']} !important;
+    }}
+    [data-testid="stChatMessageContent"] p {{
+        color: {t['text']} !important;
+    }}
+
+    /* 折叠面板 */
+    [data-testid="stExpander"] summary, [data-testid="stExpander"] p {{
+        color: {t['text']} !important;
+    }}
+
+    /* 区块小标题 — 橙色强调 */
+    .section-heading {{
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: {t['accent']};
+        margin: 24px 0 14px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid {t['border']};
+        letter-spacing: 0.04em;
+    }}
+
+    /* 类型标签（替代 emoji） */
+    .type-badge {{
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 4px;
+        margin-right: 8px;
     }}
 
     /* 主背景渐变 */
@@ -183,15 +341,17 @@ def get_theme_css(theme_key: str) -> str:
         color: {t['accent']};
         text-shadow: 0 0 12px {t['glow']};
     }}
-    .trip-metric-label {{
-        font-size: 0.88rem;
-        color: {t['muted']};
-        margin-top: 6px;
-        letter-spacing: 0.3px;
-    }}
     .trip-metric-icon {{
-        font-size: 1.6rem;
+        display: none;
+    }}
+    .trip-metric-label {{
+        font-size: 0.82rem;
+        color: {t['accent2']};
+        margin-top: 0;
         margin-bottom: 8px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-weight: 600;
     }}
 
     /* 时间轴日卡片 */
@@ -221,11 +381,15 @@ def get_theme_css(theme_key: str) -> str:
         padding: 10px 18px;
         font-weight: 500;
     }}
+    .stTabs [data-baseweb="tab"]:hover {{
+        color: {t['accent2']} !important;
+    }}
     .stTabs [aria-selected="true"] {{
         background: {t['accent']}22 !important;
         color: {t['accent']} !important;
         border-bottom: none !important;
         box-shadow: inset 0 -2px 0 {t['accent']};
+        font-weight: 600 !important;
     }}
 
     /* 主按钮 */
@@ -252,12 +416,16 @@ def get_theme_css(theme_key: str) -> str:
         border-radius: 999px !important;
     }}
 
-    /* 输入框 */
-    .stTextInput input, .stNumberInput input, .stTextArea textarea,
-    .stSelectbox div[data-baseweb="select"] > div {{
-        background: rgba(0,0,0,0.35) !important;
+    /* 输入框（不含 select 文字色，避免覆盖橙金） */
+    .stTextInput input, .stNumberInput input, .stTextArea textarea {{
+        background: rgba(8, 12, 24, 0.75) !important;
         border: 1px solid {t['border']} !important;
         color: {t['text']} !important;
+        border-radius: 8px !important;
+    }}
+    .stSelectbox div[data-baseweb="select"] > div {{
+        background: rgba(8, 12, 24, 0.75) !important;
+        border: 1px solid {t['border']} !important;
         border-radius: 8px !important;
     }}
 
@@ -286,7 +454,7 @@ def get_theme_css(theme_key: str) -> str:
     }}
 
     h2, h3, .stSubheader {{
-        color: {t['text']} !important;
+        color: {t['accent']} !important;
     }}
     .stCaption {{
         color: {t['muted']} !important;
@@ -296,7 +464,7 @@ def get_theme_css(theme_key: str) -> str:
     .section-title {{
         font-size: 1.45rem;
         font-weight: 700;
-        color: {t['text']};
+        color: {t['accent']};
         text-align: center;
         margin: 28px 0 18px;
         position: relative;

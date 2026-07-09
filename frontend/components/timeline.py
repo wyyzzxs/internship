@@ -1,14 +1,14 @@
-"""行程时间轴 — P0-3 竖排 + 类型配色 + 日卡片。"""
+"""行程时间轴 — 竖排 + 类型标签 + 日卡片。"""
 
 from __future__ import annotations
 
 import streamlit as st
 
-WEATHER_EMOJI = {"晴": "☀️", "多云": "⛅", "小雨": "🌧️", "阴": "☁️", "雪": "❄️"}
 TYPE_STYLE = {
-    "景点": {"color": "var(--accent3)", "bg": "rgba(76, 201, 240, 0.12)", "icon": "🏛️"},
-    "餐饮": {"color": "var(--accent2)", "bg": "rgba(255, 209, 102, 0.12)", "icon": "🍜"},
-    "交通": {"color": "var(--muted)", "bg": "rgba(148, 163, 184, 0.1)", "icon": "🚄"},
+    "景点": {"color": "var(--accent3)", "bg": "rgba(76, 201, 240, 0.1)", "label": "景点"},
+    "餐饮": {"color": "var(--accent2)", "bg": "rgba(255, 209, 102, 0.1)", "label": "餐饮"},
+    "交通": {"color": "var(--muted)", "bg": "rgba(148, 163, 184, 0.08)", "label": "交通"},
+    "住宿": {"color": "#c084fc", "bg": "rgba(192, 132, 252, 0.1)", "label": "住宿"},
 }
 
 
@@ -34,11 +34,14 @@ def render_timeline(plan: dict) -> None:
         weather = _weather_for_day(plan, day_date)
         weather_str = ""
         if weather:
-            emoji = WEATHER_EMOJI.get(weather.get("weather", ""), "🌡️")
-            weather_str = f"{emoji} {weather['weather']} {weather.get('temp_low')}~{weather.get('temp_high')}°C"
+            weather_str = (
+                f"{weather['weather']} {weather.get('temp_low')}–{weather.get('temp_high')}°C"
+            )
 
         st.markdown(
-            f'<div class="day-card"><h3 style="margin-top:0;color:var(--text);">📅 Day {day_num}'
+            f'<div class="day-card">'
+            f'<h3 style="margin-top:0;color:var(--text);font-weight:600;">'
+            f'Day {day_num}'
             f' <span style="font-size:0.85rem;font-weight:normal;color:var(--muted);">'
             f'{day_date} · {weekday}</span></h3>',
             unsafe_allow_html=True,
@@ -58,21 +61,26 @@ def render_timeline(plan: dict) -> None:
 
             st.markdown(
                 f"""
-                <div style="display:flex;gap:12px;margin:10px 0;padding:10px 12px;
+                <div style="display:flex;gap:14px;margin:10px 0;padding:12px 14px;
                      border-radius:8px;background:{style['bg']};border-left:3px solid {style['color']};">
-                    <div style="min-width:90px;font-weight:600;color:{style['color']};">{time_str}</div>
+                    <div style="min-width:96px;font-weight:500;color:var(--muted);font-size:0.88rem;">{time_str}</div>
                     <div style="flex:1;color:var(--text);">
-                        <div style="font-weight:600;">{item.get('emoji','📍')} {item.get('name','')} · {cost_str}</div>
-                        <div style="font-size:0.85rem;color:var(--muted);margin-top:4px;">{item.get('description','')}</div>
+                        <span class="type-badge" style="background:{style['bg']};color:{style['color']};border:1px solid {style['color']}44;">{style['label']}</span>
+                        <span style="font-weight:600;">{item.get('name','')}</span>
+                        <span style="color:var(--muted);margin-left:8px;">{cost_str}</span>
+                        <div style="font-size:0.85rem;color:var(--muted);margin-top:6px;line-height:1.5;">{item.get('description','')}</div>
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-        footer = f"💰 当日 ¥{day_cost}"
+        footer_parts = [f"当日 ¥{day_cost}"]
         if steps:
-            footer += f"  ·  🚶 {steps:,} 步"
+            footer_parts.append(f"{steps:,} 步")
         if weather_str:
-            footer += f"  ·  {weather_str}"
-        st.markdown(f"<p style='color:var(--muted);font-size:0.9rem;'>{footer}</p></div>", unsafe_allow_html=True)
+            footer_parts.append(weather_str)
+        st.markdown(
+            f"<p style='color:var(--muted);font-size:0.88rem;margin-top:8px;'>{' · '.join(footer_parts)}</p></div>",
+            unsafe_allow_html=True,
+        )

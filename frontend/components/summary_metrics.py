@@ -1,4 +1,4 @@
-"""行程概览 metrics — overview.html stat-card 风格。"""
+"""行程概览 metrics — overview stat-card 风格。"""
 
 from __future__ import annotations
 
@@ -20,10 +20,10 @@ def render_summary_metrics(plan: dict) -> None:
 
     st.markdown(
         f"""
-        <div style="color:var(--muted);font-size:0.95rem;margin-bottom:16px;text-align:center;">
-            <b style="color:var(--text);">{summary.get('city', '')}</b>
-            · {summary.get('start_date', '')} 至 {summary.get('end_date', '')}
-            · {summary.get('people', '')}
+        <div style="color:var(--muted);font-size:0.92rem;margin-bottom:18px;text-align:center;letter-spacing:0.02em;">
+            <b style="color:var(--text);font-weight:600;">{summary.get('city', '')}</b>
+            &nbsp;·&nbsp; {summary.get('start_date', '')} — {summary.get('end_date', '')}
+            &nbsp;·&nbsp; {summary.get('people', '')}
         </div>
         """,
         unsafe_allow_html=True,
@@ -31,20 +31,19 @@ def render_summary_metrics(plan: dict) -> None:
 
     c1, c2, c3, c4 = st.columns(4)
     cards = [
-        ("📅", "出行天数", f"{summary.get('days', 0)} 天"),
-        ("🏛️", "精选景点", f"{attraction_count} 个"),
-        ("💰", "预计花费", f"¥{total_spent}"),
-        ("🎯", "预算上限", f"¥{total_budget}"),
+        ("Days", "出行天数", f"{summary.get('days', 0)}"),
+        ("Spots", "精选景点", f"{attraction_count}"),
+        ("Cost", "预计花费", f"¥{total_spent}"),
+        ("Budget", "预算上限", f"¥{total_budget}"),
     ]
     cols = [c1, c2, c3, c4]
-    for col, (icon, label, value) in zip(cols, cards):
+    for col, (_tag, label, value) in zip(cols, cards):
         with col:
             st.markdown(
                 f"""
                 <div class="trip-metric-box">
-                    <div class="trip-metric-icon">{icon}</div>
-                    <div class="trip-metric-value">{value}</div>
                     <div class="trip-metric-label">{label}</div>
+                    <div class="trip-metric-value">{value}</div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -52,7 +51,7 @@ def render_summary_metrics(plan: dict) -> None:
 
     if total_budget and total_spent > total_budget:
         st.markdown(
-            f'<p style="color:#ff6b6b;text-align:center;margin-top:8px;">'
-            f"⚠️ 预计超支 ¥{total_spent - total_budget}</p>",
+            f'<p class="budget-alert budget-alert-warn" style="margin-top:12px;">'
+            f"预计超支 ¥{total_spent - total_budget}</p>",
             unsafe_allow_html=True,
         )

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 智能旅游规划师</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/travel.css') }}">
+  {% if amap.key %}
+  <script>
+    window._AMapSecurityConfig = { securityJsCode: '{{ amap.security }}' };
+  </script>
+  <script src="https://webapi.amap.com/maps?v=2.0&key={{ amap.key }}"></script>
+  {% endif %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="loading-overlay" class="loading-overlay hidden">
+  <div class="loading-card">
+    <div class="loading-title">Agent 正在规划行程</div>
+    <div class="loading-bar"><div class="loading-bar-fill" id="loading-fill"></div></div>
+    <div class="loading-step" id="loading-step">检索景点知识库…</div>
+  </div>
+</div>
+
+{% if flash.error or flash.success %}
+<div class="toast toast-{{ 'error' if flash.error else 'success' }}" id="toast">
+  {{ flash.error or flash.success }}
+</div>
+{% endif %}
+
+<div class="layout">
+  <aside class="sidebar">
+    <h1>旅行需求</h1>
+    <p class="sidebar-sub">Flask 版 · 功能完整</p>
+
+    <h2>演示预设</h2>
+    <form action="{{ url_for('preset') }}" method="post" class="js-loading-form">
+      <div class="form-group">
+        <label>一键加载</label>
+        <select name="preset_key">
+          {% for p in presets %}
+          <option value="{{ p }}">{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-secondary">加载预设</button>
+    </form>
+
+    <hr class="divider">
+
+    <form action="{{ url_for('generate') }}" method="post" id="generate-form" class="js-loading-form"
+      {% if plan %}data-plan-days="{{ plan.trip_summary.days }}"
+      data-plan-city="{{ plan.trip_summary.city }}"
+      data-plan-budget="{{ plan.trip_summary.total_budget }}"
+      data-plan-date="{{ plan.trip_summary.start_date }}"{% endif %}>
+      <div class="form-group">
+        <label>目的地</label>
+        <select name="city">
+          {% for c in cities %}
+          <option value="{{ c }}" {% if form.get('city') == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>出行天数</label>
+        <input type="number" name="days" min="1" max="7" value="{{ form.get('days', 3) }}">
+      </div>
+      <div class="form-group">
+        <label>出发日期</label>
+        <input type="date" name="start_date" id="start-date"
+          value="{{ form.get('start_date', today) }}"
+          min="{{ today }}"
+          required>
+      </div>
+      <div class="form-group">
+        <label>预算（元）</label>
+        <input type="number" name="budget" min="100" step="100" value="{{ form.get('budget', 1500) }}">
+      </div>
+      <div class="form-group">
+        <label>旅行偏好</label>
+        <div class="checkbox-grid">
+          {% for tag in preference_tags %}
+          <label><input type="checkbox" name="preferences" value="{{ tag }}"
+            {% if tag in form.get('preferences', ['历史文化','美食探店']) %}checked{% endif %}> {{ tag }}</label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="form-group">
+        <label>同行人群</label>
+        <select name="people">
+          {% for p in crowd_types %}
+          <option value="{{ p }}" {% if form.get('people') == p %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>出发地</label>
+        <input type="text" name="departure" value="{{ form.get('departure', '武汉') }}">
+      </div>
+      <div class="form-group">
+        <label>特殊要求（可选）</label>
+        <textarea name="special" rows="2" placeholder="例：不想走太多路">{{ form.get('special', '') }}</textarea>
+      </div>
+      <label class="checkbox-row">
+        <input type="checkbox" name="show_heatmap" {% if show_heatmap %}checked{% endif %}>
+        地图显示热力图层
+      </label>
+      <button type="submit" class="btn btn-primary">生成行程</button>
+      <p class="form-hint">修改参数后请点击「生成行程」，右侧才会更新</p>
+    </form>
+    <div id="client-stale-hint" class="alert alert-warn form-stale-banner hidden">
+      左侧参数已修改，请点击「生成行程」更新右侧
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="hero">
+      <h1>AI 智能旅游规划师</h1>
+      <p>输入目的地 · 天数 · 预算，Agent 自动生成可交互攻略</p>
+      <span class="badge">{% if use_mock %}Mock 模式{% else %}API 模式{% endif %}</span>
+    </div>
+
+    {% if form_stale and plan %}
+    <div class="alert alert-warn form-stale-banner">
+      左侧参数已修改（当前右侧仍为旧行程），请点击「生成行程」刷新
+    </div>
+    {% endif %}
+
+    <nav class="tabs" id="tab-nav">
+      <button class="tab active" data-tab="itinerary">行程</button>
+      <button class="tab" data-tab="map">地图</button>
+      <button class="tab" data-tab="chat">对话</button>
+      <button class="tab" data-tab="budget">预算</button>
+      <button class="tab" data-tab="export">导出</button>
+      <button class="tab" data-tab="compare">对比</button>
+    </nav>
+
+    {% if plan %}
+    {% set s = plan.trip_summary %}
+
+    <div class="tab-panel active" id="panel-itinerary">
+      <p class="trip-meta"><b>{{ s.city }}</b> · {{ s.start_date }} — {{ s.end_date }} · {{ s.people }}</p>
+
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-label">出行天数</div>
+          <div class="metric-value">{{ s.days }}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">精选景点</div>
+          <div class="metric-value">{{ stats.attractions }}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">预计花费</div>
+          <div class="metric-value">¥{{ total_spent }}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">预算上限</div>
+          <div class="metric-value">¥{{ s.total_budget }}</div>
+        </div>
+      </div>
+
+      {% if s.total_budget and total_spent > s.total_budget %}
+      <div class="alert alert-warn">预计超支 ¥{{ total_spent - s.total_budget }}</div>
+      {% endif %}
+
+      {% for day in plan.days %}
+      {% set w = weather_for_day(plan, day.date) %}
+      <div class="day-card">
+        <h3>Day {{ day.day }} <span>{{ day.date }} · {{ day.weekday }}</span>
+          {% if w %}<span class="weather-badge">{{ w.weather }} {{ w.temp_low }}–{{ w.temp_high }}°C</span>{% endif %}
+        </h3>
+        {% if w and w.suggestion %}
+        <p class="weather-hint">{{ w.suggestion }}</p>
+        {% endif %}
+        {% for item in day.get('items', []) %}
+        <div class="timeline-item" style="border-left-color: {% if item.type == '餐饮' %}var(--accent2){% elif item.type == '交通' %}var(--muted){% elif item.type == '住宿' %}#c084fc{% else %}var(--accent3){% endif %}">
+          <div class="timeline-time">{{ item.time }}{% if item.end_time %} – {{ item.end_time }}{% endif %}</div>
+          <div>
+            <span class="type-tag type-{{ item.type }}">{{ item.type }}</span>
+            <span class="item-name">{{ item.name }}</span>
+            <span class="item-cost">{% if item.cost == 0 %}免费{% else %}¥{{ item.cost }}{% endif %}</span>
+            {% if item.description %}<div class="item-desc">{{ item.description }}</div>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+        <div class="day-footer">当日 ¥{{ day.day_cost }}{% if day.steps %} · {{ '{:,}'.format(day.steps) }} 步{% endif %}</div>
+      </div>
+      {% endfor %}
+
+      {% if attractions %}
+      <h3 class="section-title">精选景点</h3>
+      <div class="card-grid">
+        {% for a in attractions %}
+        <div class="attr-card">
+          {% if a.image_b64 %}
+          <div class="attr-img" style="background-image:url('{{ a.image_b64 }}')"></div>
+          {% else %}
+          <div class="attr-img attr-img-fallback"></div>
+          {% endif %}
+          <div class="attr-body">
+            <div class="attr-name">{{ a.name }}</div>
+            <div class="attr-meta">{% if a.rating %}评分 {{ a.rating }} · {% endif %}{% if a.cost == 0 %}免费{% else %}¥{{ a.cost }}{% endif %}</div>
+            {% if a.tags %}
+            <div class="tag-row">{% for t in a.tags[:3] %}<span class="mini-tag">{{ t }}</span>{% endfor %}</div>
+            {% endif %}
+            {% if a.description %}<div class="attr-desc">{{ a.description[:80] }}{% if a.description|length > 80 %}…{% endif %}</div>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if plan.tips %}
+      <h3 class="section-title">旅行贴士</h3>
+      <ul class="tip-list">
+        {% for tip in plan.tips %}<li>{{ tip }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <div class="tab-panel" id="panel-map">
+      {% if not amap.key %}
+      <div class="alert alert-warn">未配置 AMAP_JS_API_KEY，地图可能无法加载</div>
+      {% endif %}
+      <form action="{{ url_for('settings') }}" method="post" class="map-toolbar">
+        <input type="hidden" name="return_tab" value="map">
+        <label class="checkbox-row inline">
+          <input type="checkbox" name="show_heatmap" {% if show_heatmap %}checked{% endif %} onchange="this.form.submit()">
+          显示热力图层
+        </label>
+      </form>
+      <div id="map-container"><div id="map"></div></div>
+      <p class="map-caption">共 {{ map_points|length }} 个点位 · 虚线为游览顺序{% if show_heatmap %} · 热力图层已开启{% endif %}</p>
+    </div>
+
+    <div class="tab-panel" id="panel-chat">
+      {% if use_mock %}
+      <p class="panel-hint">Mock 对话模式 · 支持换景点、加目的地、减预算等指令</p>
+      {% endif %}
+      <div class="chat-box" id="chat-box">
+        {% if not chat_messages %}
+        <div class="chat-msg assistant">您好，我可以帮您修改行程。例如：「把第 2 天改成博物馆」或「我想去西安电子科技大学，重新安排」</div>
+        {% endif %}
+        {% for msg in chat_messages %}
+        <div class="chat-msg {{ msg.role }}">{{ msg.content }}</div>
+        {% endfor %}
+      </div>
+      <div class="chat-form">
+        <input type="text" id="chat-input" placeholder="输入修改指令…">
+        <button type="button" id="chat-send">发送</button>
+      </div>
+      <form action="{{ url_for('clear_chat') }}" method="post" class="chat-clear">
+        <button type="submit" class="btn btn-ghost small">清空对话</button>
+      </form>
+    </div>
+
+    <div class="tab-panel" id="panel-budget">
+      {% set bd = plan.budget_breakdown %}
+      {% if bd %}
+      <div class="metrics metrics-3">
+        <div class="metric-card">
+          <div class="metric-label">预计总花费</div>
+          <div class="metric-value">¥{{ total_spent }}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">预算上限</div>
+          <div class="metric-value">¥{{ s.total_budget }}</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">预算使用率</div>
+          <div class="metric-value">{{ budget_usage_pct }}%</div>
+        </div>
+      </div>
+      {% if s.total_budget and total_spent > s.total_budget %}
+      <div class="alert alert-warn">超支 ¥{{ total_spent - s.total_budget }}（预算 ¥{{ s.total_budget }}，预计 ¥{{ total_spent }}）</div>
+      {% elif s.total_budget %}
+      <div class="alert alert-ok">预算充足，剩余 ¥{{ s.total_budget - total_spent }}</div>
+      {% endif %}
+      <div class="budget-grid">
+        <div class="chart-card"><canvas id="pie-chart"></canvas></div>
+        <div class="chart-card"><canvas id="bar-chart"></canvas></div>
+      </div>
+      <h3 class="section-title">预算明细</h3>
+      <table class="glass-table">
+        <thead><tr><th>类别</th><th>金额</th><th>占比</th><th>分布</th></tr></thead>
+        <tbody>
+          {% for k, v in bd.items() %}
+          <tr>
+            <td><span class="budget-dot"></span>{{ k }}</td>
+            <td class="amt">¥{{ v }}</td>
+            <td>{{ '%.1f'|format(v / total_spent * 100 if total_spent else 0) }}%</td>
+            <td class="budget-bar-cell">
+              <div class="budget-bar-track">
+                <div class="budget-bar-fill" style="width:{{ (v / total_spent * 100)|round(0)|int if total_spent else 0 }}%"></div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty"><p>暂无预算数据</p></div>
+      {% endif %}
+    </div>
+
+    <div class="tab-panel" id="panel-export">
+      <h3 class="section-title">导出攻略</h3>
+      <p class="panel-hint">下载当前行程为 Markdown / JSON / PDF，或生成出行清单</p>
+      <div class="export-grid">
+        <a href="{{ url_for('export', fmt='md', cid=cache_id) }}" class="export-card" download>
+          <span class="export-title">Markdown</span>
+          <span class="export-desc">适合分享与编辑</span>
+        </a>
+        <a href="{{ url_for('export', fmt='json', cid=cache_id) }}" class="export-card" download>
+          <span class="export-title">JSON</span>
+          <span class="export-desc">完整结构化数据</span>
+        </a>
+        <a href="{{ url_for('export', fmt='pdf', cid=cache_id) }}" class="export-card" download>
+          <span class="export-title">PDF</span>
+          <span class="export-desc">不可用时自动降级为 TXT</span>
+        </a>
+        <a href="{{ url_for('export', fmt='checklist', cid=cache_id) }}" class="export-card" download>
+          <span class="export-title">出行清单</span>
+          <span class="export-desc">Markdown 清单</span>
+        </a>
+      </div>
+      <p class="panel-hint">导出文件包含完整行程、预算明细与旅行贴士，可直接用于答辩材料。</p>
+    </div>
+
+    <div class="tab-panel" id="panel-compare">
+      {% if compare %}
+      <div class="compare-grid">
+        <div class="compare-card">
+          <h4>方案 A（当前）</h4>
+          <p class="compare-city">{{ compare.a.city }} · {{ compare.a.days }} 天</p>
+          <div class="compare-stat"><span>预计花费</span><strong>¥{{ compare.a.spent }}</strong></div>
+          <div class="compare-stat"><span>景点数</span><strong>{{ compare.a.attractions }}</strong></div>
+          <div class="compare-stat"><span>预算上限</span><strong>¥{{ compare.a.budget }}</strong></div>
+        </div>
+        <div class="compare-card">
+          <h4>方案 B（上次）</h4>
+          <p class="compare-city">{{ compare.b.city }} · {{ compare.b.days }} 天</p>
+          <div class="compare-stat"><span>预计花费</span><strong>¥{{ compare.b.spent }}</strong></div>
+          <div class="compare-stat"><span>景点数</span><strong>{{ compare.b.attractions }}</strong></div>
+          <div class="compare-stat"><span>预算上限</span><strong>¥{{ compare.b.budget }}</strong></div>
+        </div>
+      </div>
+      <div class="alert {% if compare.winner == 'tie' %}alert-info{% else %}alert-ok{% endif %}">{{ compare.message }}</div>
+      {% else %}
+      <div class="empty">
+        <h3>暂无可对比方案</h3>
+        <p>生成两次不同行程后，可在此对比花费与景点数量</p>
+      </div>
+      {% endif %}
+    </div>
+
+    {% else %}
+    <div class="empty">
+      <div class="empty-bar"></div>
+      <h3>暂无行程</h3>
+      <p>在左侧填写需求并点击「生成行程」，或加载演示预设</p>
+    </div>
+    {% endif %}
+  </main>
+</div>
+
+<script>
+  const PLAN = {{ plan|tojson if plan else 'null' }};
+  const MAP_POINTS = {{ map_points|tojson if plan else '[]' }};
+  const BUDGET = {{ plan.budget_breakdown|tojson if plan and plan.budget_breakdown else '{}' }};
+  const DAYS_COST = {{ days_cost|tojson if plan else '[]' }};
+  const ACTIVE_TAB = '{{ active_tab }}';
+  const TODAY = '{{ today }}';
+  const CITY_CENTER = {{ city_center|tojson if plan else '[114.3055, 30.5928]' }};
+  const HEATMAP_DATA = {{ heatmap_data|tojson if plan else '[]' }};
+  const SHOW_HEATMAP = {{ 'true' if show_heatmap else 'false' }};
+  const HAS_AMAP = {{ 'true' if amap.key else 'false' }};
+</script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

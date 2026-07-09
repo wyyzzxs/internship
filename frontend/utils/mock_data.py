@@ -2,10 +2,17 @@
 
 from __future__ import annotations
 
+import json
+import re
 from copy import deepcopy
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from pathlib import Path
 
 from utils.data_loader import enrich_plan
+
+ROOT = Path(__file__).resolve().parent.parent.parent
+MOCK_PLANS_DIR = ROOT / "data" / "mock_plans"
+WEEKDAYS = ("周一", "周二", "周三", "周四", "周五", "周六", "周日")
 
 TOOLS_CALLED = [
     "search_attractions",
@@ -14,6 +21,8 @@ TOOLS_CALLED = [
     "optimize_route",
 ]
 SESSION_ID = "ses_mock_20250708_001"
+
+CITY_SLUG = {"武汉": "wuhan", "西安": "xian", "成都": "chengdu", "北京": "beijing", "杭州": "hangzhou", "厦门": "xiamen"}
 
 
 def _base_plan(city: str, days: int, budget: int, people: str) -> dict:
@@ -35,6 +44,21 @@ def _base_plan(city: str, days: int, budget: int, people: str) -> dict:
     }
 
 
+def _parse_date(value: str | date | None) -> date:
+    if isinstance(value, date):
+        return value
+    if value:
+        try:
+            return date.fromisoformat(str(value)[:10])
+        except ValueError:
+            pass
+    return date.today()
+
+
+def _weekday_label(d: date) -> str:
+    return WEEKDAYS[d.weekday()]
+
+
 def _wrap(plan: dict) -> dict:
     plan = enrich_plan(plan)
     return {
@@ -43,6 +67,134 @@ def _wrap(plan: dict) -> dict:
         "plan": plan,
         "tools_called": TOOLS_CALLED,
     }
+
+
+def _load_json_plan(path: Path) -> dict | None:
+    if not path.exists():
+        return None
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    data.pop("_meta", None)
+    return data
+
+
+def _find_disk_plan(city: str, days: int, budget: int) -> dict | None:
+    """从 data/mock_plans/ 找最匹配的 JSON。"""
+    slug = CITY_SLUG.get(city, re.sub(r"\s+", "", city.lower()))
+    exact = MOCK_PLANS_DIR / f"{slug}_{days}day_{budget}.json"
+    if plan := _load_json_plan(exact):
+        return plan
+
+    if not MOCK_PLANS_DIR.exists():
+        return None
+
+    city_plans: list[tuple[int, dict]] = []
+    for path in MOCK_PLANS_DIR.glob("*.json"):
+        plan = _load_json_plan(path)
+        if not plan:
+            continue
+        summary = plan.get("trip_summary", {})
+        if summary.get("city") != city:
+            continue
+        score = abs(summary.get("days", 3) - days) * 10 + abs(summary.get("total_budget", budget) - budget)
+        city_plans.append((score, plan))
+
+    if not city_plans:
+        return None
+    city_plans.sort(key=lambda x: x[0])
+    return deepcopy(city_plans[0][1])
+
+
+def _adjust_days(plan: dict, target_days: int, start: date) -> None:
+    """按用户天数裁剪或扩展行程。"""
+    days_list = plan.get("days", [])
+    if not days_list:
+        return
+
+    if target_days < len(days_list):
+        days_list = days_list[:target_days]
+    elif target_days > len(days_list):
+        template = deepcopy(days_list[-1])
+        for n in range(len(days_list) + 1, target_days + 1):
+            new_day = deepcopy(template)
+            new_day["day"] = n
+            new_day["items"] = [
+                {**item, "name": item.get("name", "自由活动").replace("Day", f"Day{n}")}
+                for item in template.get("items", [])[:2]
+            ] or [{"time": "10:00", "type": "景点", "name": "自由活动", "cost": 0, "description": "自由安排", "emoji": "🚶"}]
+            days_list.append(new_day)
+
+    dates = [start + timedelta(days=i) for i in range(target_days)]
+    for i, day in enumerate(days_list):
+        day["day"] = i + 1
+        day["date"] = dates[i].isoformat()
+        day["weekday"] = _weekday_label(dates[i])
+        day["day_cost"] = sum(item.get("cost", 0) for item in day.get("items", []))
+
+    plan["days"] = days_list
+
+    weather = plan.get("weather", [])
+    if weather:
+        template = weather[0]
+        new_weather = []
+        for i in range(target_days):
+            w = deepcopy(weather[i % len(weather)])
+            w["date"] = dates[i].isoformat()
+            new_weather.append(w)
+        plan["weather"] = new_weather
+
+
+def _scale_budget(plan: dict, budget: int) -> None:
+    """按用户预算调整 breakdown 与 summary。"""
+    summary = plan.setdefault("trip_summary", {})
+    summary["total_budget"] = budget
+    breakdown = plan.get("budget_breakdown", {})
+    if not breakdown:
+        return
+    old_total = sum(breakdown.values()) or 1
+    ratio = budget / old_total
+    plan["budget_breakdown"] = {k: max(1, int(v * ratio)) for k, v in breakdown.items()}
+
+
+def apply_request_to_plan(plan: dict, request: dict) -> dict:
+    """把侧边栏表单参数应用到 plan（Mock 模式下模拟 Agent 响应）。"""
+    plan = deepcopy(plan)
+    city = request.get("city", "武汉")
+    days = int(request.get("days", 3))
+    budget = int(request.get("budget", 1500))
+    people = request.get("people", "情侣出游")
+    start = _parse_date(request.get("start_date"))
+    end = start + timedelta(days=max(days, 1) - 1)
+
+    summary = plan.setdefault("trip_summary", {})
+    summary.update({
+        "city": city,
+        "days": days,
+        "start_date": start.isoformat(),
+        "end_date": end.isoformat(),
+        "total_budget": budget,
+        "people": people,
+    })
+    if request.get("departure"):
+        summary["departure"] = request["departure"]
+    if request.get("preferences"):
+        summary["preferences"] = request["preferences"]
+
+    _adjust_days(plan, days, start)
+    _scale_budget(plan, budget)
+
+    tips = list(plan.get("tips", []))
+    if request.get("special"):
+        tip = f"特别要求：{request['special']}"
+        if tip not in tips:
+            tips.insert(0, tip)
+    if request.get("preferences"):
+        pref_tip = f"偏好：{'、'.join(request['preferences'])}"
+        if pref_tip not in tips:
+            tips.append(pref_tip)
+    plan["tips"] = tips
+
+    return plan
 
 
 def _build_wuhan_plan() -> dict:
@@ -169,68 +321,40 @@ DEMO_PRESETS: dict[str, dict] = {
 }
 
 
-def get_mock_plan(city: str = "武汉", **_kwargs) -> dict:
-    for preset in DEMO_PRESETS.values():
-        if preset["plan"]["trip_summary"]["city"] == city:
-            return deepcopy(preset)
-    plan = _build_wuhan_plan()
-    plan["plan"]["trip_summary"]["city"] = city
-    return plan
-
-
-def get_mock_chat_response(message: str, current_plan: dict | None = None) -> dict:
-    plan = deepcopy(current_plan) if current_plan else _build_wuhan_plan()["plan"]
-
-    if "博物馆" in message:
-        for day in plan.get("days", []):
-            for item in day.get("items", []):
-                if "江滩" in item.get("name", "") or "江汉" in item.get("name", ""):
-                    item["name"] = "湖北省博物馆"
-                    item["description"] = "曾侯乙编钟，免费参观"
-                    item["cost"] = 0
-                    item["emoji"] = "🏛️"
-                    item["lat"] = 30.5625
-                    item["lng"] = 114.3665
-                    enrich_plan(plan)
-                    return {
-                        "success": True,
-                        "reply": "好的，已把江滩改为湖北省博物馆，游览 2 小时，免费参观。",
-                        "updated_plan": plan,
-                        "diff": {"day": day["day"], "removed": "江汉江滩", "added": "湖北省博物馆"},
-                    }
-
-    if "预算" in message or "省钱" in message or "1000" in message:
-        bd = plan.get("budget_breakdown", {})
-        for k in bd:
-            bd[k] = int(bd[k] * 0.7)
-        plan["trip_summary"]["total_budget"] = 1000
-        return {
-            "success": True,
-            "reply": "已将预算压缩至 1000 元，住宿和餐饮已调整为经济型方案。",
-            "updated_plan": plan,
-            "diff": {"type": "budget", "new_budget": 1000},
-        }
-
-    if "加" in message and ("景点" in message or "博物馆" in message):
-        if plan.get("days"):
-            day = plan["days"][-1]
-            day["items"].append({
-                "time": "15:00", "end_time": "17:00", "type": "景点",
-                "name": "湖北省博物馆", "duration_hours": 2, "cost": 0,
-                "lat": 30.5625, "lng": 114.3665,
-                "description": "曾侯乙编钟", "emoji": "🏛️",
-            })
-            enrich_plan(plan)
-            return {
-                "success": True,
-                "reply": f"已在 Day {day['day']} 下午添加湖北省博物馆。",
-                "updated_plan": plan,
-                "diff": {"day": day["day"], "added": "湖北省博物馆"},
-            }
-
-    return {
-        "success": True,
-        "reply": f"收到：「{message}」。Mock 模式下已记录，联调后将由 Agent 真实修改。",
-        "updated_plan": plan,
-        "diff": None,
+def get_mock_plan(
+    city: str = "武汉",
+    days: int = 3,
+    budget: int = 1500,
+    start_date: str | None = None,
+    people: str = "情侣出游",
+    preferences: list | None = None,
+    departure: str | None = None,
+    special: str | None = None,
+    **kwargs,
+) -> dict:
+    request = {
+        "city": city,
+        "days": days,
+        "budget": budget,
+        "start_date": start_date,
+        "people": people,
+        "preferences": preferences or [],
+        "departure": departure,
+        "special": special,
     }
+
+    # 1. 磁盘 mock_plans（与后端 A 组数据一致）
+    base = _find_disk_plan(city, days, budget)
+    # 2. 内置演示预设
+    if base is None:
+        for preset in DEMO_PRESETS.values():
+            if preset["plan"]["trip_summary"]["city"] == city:
+                base = deepcopy(preset["plan"])
+                break
+    # 3. 兜底武汉
+    if base is None:
+        base = deepcopy(_build_wuhan_plan()["plan"])
+        base["trip_summary"]["city"] = city
+
+    plan = apply_request_to_plan(base, request)
+    return _wrap(plan)

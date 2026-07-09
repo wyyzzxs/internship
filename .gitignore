@@ -40,6 +40,9 @@ venv.bak/
 *.env
 !.env.example
 
+# Flask 行程缓存（本地运行时生成）
+.flask_plan_cache/
+
 # ===== 向量库(体积大,通过脚本重建) =====
 chroma_db/
 *.chroma
