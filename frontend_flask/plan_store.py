@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import secrets
 import shutil
-from copy import deepcopy
 from pathlib import Path
 
 from flask import session

@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 """AI 智能旅游规划师 — 主入口。"""
 
 from __future__ import annotations

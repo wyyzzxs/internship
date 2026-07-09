@@ -1,7 +1,7 @@
 import os
 import json
 import datetime
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 from backend.config import settings
 
 router = APIRouter()
@@ -35,7 +35,7 @@ def get_mock_weather(city: str, start_date_str: str, days: int):
         weather_list = []
         try:
             start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d")
-        except:
+        except Exception:
             start_date = datetime.datetime.today()
             
         cache_dates = list(city_cache.keys())
@@ -54,7 +54,7 @@ def get_mock_weather(city: str, start_date_str: str, days: int):
             weather_list.append(day_info)
             
         return weather_list
-    except Exception as e:
+    except Exception:
         # Fallback to simple hardcode
         return [
             {
@@ -95,7 +95,7 @@ def get_weather_api(
             "source": "api",
             "weather": result
         }
-    except Exception as e:
+    except Exception:
         # Fallback to mock if API fails
         weather_data = get_mock_weather(city, start_date, days)
         return {

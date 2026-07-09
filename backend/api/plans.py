@@ -1,9 +1,8 @@
 import json
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from typing import Dict, Any
 from pydantic import BaseModel, Field
-from datetime import datetime
 
 from backend.db.sqlite import get_db
 from backend.db.models import SavedPlanModel

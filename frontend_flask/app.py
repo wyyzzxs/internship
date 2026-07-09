@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 """Flask 版前端 — 旅行暗色主题，与 Streamlit 并行。"""
 
 from __future__ import annotations

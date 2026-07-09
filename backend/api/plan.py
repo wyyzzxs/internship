@@ -2,8 +2,8 @@ import os
 import json
 import uuid
 import datetime
-from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Depends
+from typing import List
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -72,13 +72,13 @@ def generate_mock_itinerary(req: PlanRequest):
         try:
             with open(rest_file, "r", encoding="utf-8") as f:
                 restaurants = [r for r in json.load(f).get("restaurants", []) if r.get("city") == req.city]
-        except:
+        except Exception:
             pass
     if os.path.exists(hotel_file):
         try:
             with open(hotel_file, "r", encoding="utf-8") as f:
                 hotels = [h for h in json.load(f).get("hotels", []) if h.get("city") == req.city]
-        except:
+        except Exception:
             pass
             
     # Fill defaults if empty
@@ -95,7 +95,7 @@ def generate_mock_itinerary(req: PlanRequest):
     
     try:
         start_date = datetime.datetime.strptime(req.start_date, "%Y-%m-%d")
-    except:
+    except Exception:
         start_date = datetime.datetime.today()
         
     total_ticket_cost = 0
@@ -176,7 +176,7 @@ def generate_mock_itinerary(req: PlanRequest):
             "cost": dining_cost,
             "lat": rest.get("lat", items[-1]["lat"] if items else 30.5),
             "lng": rest.get("lng", items[-1]["lng"] if items else 114.3),
-            "description": f"享受当地晚间美食",
+            "description": "享受当地晚间美食",
             "emoji": "🍲"
         })
         
@@ -192,7 +192,7 @@ def generate_mock_itinerary(req: PlanRequest):
                 "cost": hotel_cost,
                 "lat": hotel_choice.get("lat", items[-1]["lat"] if items else 30.5),
                 "lng": hotel_choice.get("lng", items[-1]["lng"] if items else 114.3),
-                "description": f"办理入住并休息",
+                "description": "办理入住并休息",
                 "emoji": "🏨"
             })
             
