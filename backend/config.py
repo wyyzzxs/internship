@@ -68,7 +68,8 @@ class Config:
 class _SettingsCompat:
     """Compatibility shim for D branch modules that import backend.config.settings."""
 
-    DASHCOPE_API_KEY = Config.DASHSCOPE_API_KEY
+    DASHCOPE_API_KEY = Config.DASHSCOPE_API_KEY  # legacy alias (D 分支老代码用了 typo)
+    DASHSCOPE_API_KEY = Config.DASHSCOPE_API_KEY
     AMAP_JS_API_KEY = Config.AMAP_JS_API_KEY
     AMAP_WEB_SERVICE_KEY = Config.AMAP_WEB_SERVICE_KEY
     HEFENG_KEY = Config.HEFENG_KEY

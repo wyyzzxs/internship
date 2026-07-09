@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
 from datetime import date
@@ -145,15 +146,27 @@ def generate():
     session["show_heatmap"] = request.form.get("show_heatmap") == "on"
     try:
         resp = fetch_plan_api(form)
-        if resp.get("success"):
+        # 诊断日志
+        logging.warning(
+            "GENERATE_DIAG: success=%s keys=%s plan_type=%s plan_keys=%s",
+            resp.get("success"),
+            list(resp.keys()),
+            type(resp.get("plan")).__name__,
+            list(resp.get("plan", {}).keys()) if isinstance(resp.get("plan"), dict) else None,
+        )
+        if resp.get("success") and resp.get("plan"):
             set_plan(resp["plan"], track_previous=True)
             session["session_id"] = resp.get("session_id", "")
             session.setdefault("chat_messages", [])
             session["flash_success"] = "行程生成成功"
         else:
-            session["flash_error"] = resp.get("error", "生成失败")
+            session["flash_error"] = (
+                resp.get("error")
+                or f"后端未返回合法 plan(success={resp.get('success')}, plan={type(resp.get('plan')).__name__})"
+            )
     except Exception as exc:
-        session["flash_error"] = str(exc)
+        logging.exception("GENERATE_DIAG: exception")
+        session["flash_error"] = f"生成失败:{exc}"
     return redirect(url_for("index", tab="itinerary"))
 
 

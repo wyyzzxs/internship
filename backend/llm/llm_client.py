@@ -144,14 +144,25 @@ class LLMClient:
         last_exc: BaseException | None = None
         for attempt in range(retries):
             try:
+                # DashScope 兼容模式不允许 assistant.content=None(返回 400:
+                # "if content is list. item must be dict and key[type] should in dict")。
+                # 工具调用回合里 LLM 只回 tool_calls 不回 content,我们在送出去前
+                # 把 None 归一成空串,避免第二轮 LLM 调用 400。
+                norm_messages = []
+                for m in messages:
+                    m2 = dict(m)
+                    if m2.get("content") is None and m2.get("role") == "assistant":
+                        m2["content"] = ""
+                    norm_messages.append(m2)
                 kwargs: dict[str, Any] = {
                     "model": self.model,
-                    "messages": messages,
+                    "messages": norm_messages,
                     "temperature": temperature,
                 }
                 if openai_tools:
                     kwargs["tools"] = openai_tools
                     kwargs["tool_choice"] = "auto"
+                logger.debug("LLM 请求: model=%s messages=%d tools=%d", self.model, len(norm_messages), len(openai_tools or []))
                 resp = self.client.chat.completions.create(**kwargs)
                 return self._normalize(resp)
 

@@ -129,3 +129,7 @@ _*.log
 _*.csv
 _*.yml
 _*.yaml
+*.ps1
+scripts/run_backend.bat
+scripts/run_flask.bat
+scripts/run_streamlit.bat

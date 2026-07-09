@@ -41,7 +41,9 @@ CATEGORY_COLOR = {
 
 
 def use_mock() -> bool:
-    return os.getenv("USE_MOCK", "true").lower() == "true"
+    # 默认走真实后端(USE_MOCK=false),保持和 .env 一致;
+    # 之前默认 "true" 会让 Flask 前端一直本地 mock
+    return os.getenv("USE_MOCK", "false").lower() == "true"
 
 
 def backend_url() -> str:

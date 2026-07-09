@@ -129,6 +129,46 @@ def _extract_json(content: str) -> Optional[dict]:
         return None
 
 
+# ItemType Literal 兜底:把 LLM 自由发挥的 type 字符串归一到 6 个枚举值
+_VALID_ITEM_TYPES = {"景点", "餐饮", "住宿", "交通", "门票", "其他"}
+
+
+def _normalize_item_type(raw: object) -> str:
+    """把任意字符串/对象归一到 ItemType 枚举值。
+
+    常见误用:"夜景观赏"、"休闲度假"、"购物"、"看演出"、"citywalk"...
+    全部映射到最近的合法枚举,避免 Pydantic Literal 校验失败。
+    """
+    if not isinstance(raw, str) or not raw.strip():
+        return "其他"
+    s = raw.strip()
+    if s in _VALID_ITEM_TYPES:
+        return s
+    # 关键词启发式
+    if any(k in s for k in ("景点", "景区", "公园", "博物馆", "古镇", "寺", "塔", "楼", "观景", "夜游", "夜景", "citywalk", "散步", "漫步", "游览", "参观")):
+        return "景点"
+    if any(k in s for k in ("餐", "吃", "美食", "小吃", "餐厅", "饭店", "火锅", "烧烤", "早餐", "午餐", "晚餐", "夜宵")):
+        return "餐饮"
+    if any(k in s for k in ("酒店", "民宿", "客栈", "住宿", "旅馆", "入住", "宾馆")):
+        return "住宿"
+    if any(k in s for k in ("交通", "打车", "地铁", "公交", "高铁", "火车", "飞机", "航班", "自驾", "出行", "车")):
+        return "交通"
+    if any(k in s for k in ("门票", "票", "入场", "预约", "演出票")):
+        return "门票"
+    return "其他"
+
+
+def _normalize_plan_dict(plan_dict: dict) -> dict:
+    """规范化 LLM 输出的 plan dict,把每个 item.type 归一到 ItemType。"""
+    days = plan_dict.get("days") or []
+    for d in days:
+        items = d.get("items") or []
+        for item in items:
+            if isinstance(item, dict) and "type" in item:
+                item["type"] = _normalize_item_type(item.get("type"))
+    return plan_dict
+
+
 # --------------------------------------------------------------------------- #
 # 主类
 # --------------------------------------------------------------------------- #
@@ -188,6 +228,10 @@ class PlanAgent:
             plan_dict = self._call_llm_with_tools_loop(request)
             if not plan_dict or "trip_summary" not in plan_dict:
                 raise RuntimeError("LLM 未返回含 trip_summary 的合法 JSON")
+            # LLM 经常给出 "夜景观赏"/"休闲度假" 这类自由 type,
+            # 归一到 ItemType 枚举(景点/餐饮/住宿/交通/门票/其他),
+            # 避免 Pydantic Literal 校验失败导致 fallback。
+            plan_dict = _normalize_plan_dict(plan_dict)
             plan = Plan.model_validate(plan_dict)
 
             # 3. **第二轮新增**:reflect-loop
@@ -376,12 +420,14 @@ class PlanAgent:
                             tool_result = json.dumps(
                                 {"error": str(exc), "tool": name}, ensure_ascii=False
                             )
+                    # DashScope 兼容模式不接受 OpenAI tool message 多余的 name 字段,
+                    # 严格按 {"role":"tool","tool_call_id":..,"content":..} 三字段构造,
+                    # 避免后端把它误判成 list-content 格式返回 400。
                     messages.append(
                         {
                             "role": "tool",
                             "tool_call_id": tc["id"],
-                            "name": name,
-                            "content": tool_result,
+                            "content": tool_result if isinstance(tool_result, str) else json.dumps(tool_result, ensure_ascii=False),
                         }
                     )
                 continue

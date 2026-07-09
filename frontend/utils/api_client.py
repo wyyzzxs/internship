@@ -11,7 +11,9 @@ from utils.data_loader import enrich_plan
 from utils.mock_chat import get_mock_chat_response
 from utils.mock_data import get_mock_plan
 
-USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
+# 关键:默认调真实后端。之前默认 "true" 导致前端永远走本地 mock,
+# 改 "false" 后只要 .env 显式设 USE_MOCK=true 才退化到 mock。
+USE_MOCK = os.getenv("USE_MOCK", "false").lower() == "true"
 BACKEND_URL = os.getenv("BACKEND_URL") or os.getenv("API_BASE_URL", "http://localhost:8000")
 
 # 前端表单文案 → 后端 AgentRequest PeopleType
@@ -52,7 +54,8 @@ def _url(path: str) -> str:
 
 
 def _post(path: str, payload: dict) -> dict:
-    resp = requests.post(_url(path), json=payload, timeout=60)
+    # LLM 多轮 + reflect-loop 最坏情况能跑到 2~3 分钟,60 秒不够
+    resp = requests.post(_url(path), json=payload, timeout=180)
     resp.raise_for_status()
     return resp.json()
 

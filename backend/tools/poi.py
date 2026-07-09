@@ -184,7 +184,20 @@ def search_nearby_poi(
     city: str | None = None,
     keywords: str | None = None,
 ) -> dict[str, Any]:
-    """查询景点周边 1km 餐厅、酒店、厕所或景点 POI。"""
+    """查询景点周边 POI(餐厅/酒店/景点/厕所)。
+
+    Args:
+        lat: 中心点纬度(**必填**,十进制度数,例如 30.5438)。
+        lng: 中心点经度(**必填**,十进制度数,例如 114.3055)。
+        radius_m: 搜索半径(米),默认 1000,范围 100-5000。
+        poi_type: 类型,可选值 restaurant / food / hotel / attraction / scenic / toilet,默认 restaurant。
+        limit: 返回数量上限,默认 8,范围 1-30。
+        city: 城市中文名(可选,辅助推断)。
+        keywords: 关键词(可选,如"夜宵""火锅")。
+
+    Returns:
+        包含 items / count / center 的字典;无 lat/lng 时会失败,务必传入景点坐标。
+    """
 
     return search_nearby_poi_data(lat, lng, radius_m, poi_type, limit, city, keywords)
 

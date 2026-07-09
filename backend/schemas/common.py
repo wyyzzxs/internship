@@ -22,14 +22,8 @@ WeatherKind = Literal[
     "其他",
 ]
 
-# 天气建议
-WeatherSuggestion = Literal[
-    "适合户外",
-    "建议安排室内活动",
-    "高温注意防晒",
-    "雨天携带雨具",
-    "其他",
-]
+# 天气建议(放宽为 str,允许 LLM 自由生成;前端展示时再按需规范化)
+WeatherSuggestion = str
 
 # 同行人群
 PeopleType = Literal["独自", "情侣", "亲子", "朋友", "商务"]
