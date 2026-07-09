@@ -49,6 +49,12 @@ streamlit run frontend/app.py --server.port 8501
 
 访问 http://localhost:8501
 
+## 成员 B 功能
+
+- 实时天气 `/api/weather`:有 `QWEATHER_API_KEY` 时走和风天气,无 Key 时走本地缓存兜底;和风新版凭据可同时配置 `QWEATHER_API_HOST`。
+- 周边 POI `/api/nearby-poi`:支持餐厅、酒店、景点、厕所;有高德 Web 服务 Key 时走真实 POI,无 Key 时走本地数据。
+- 旅行 Checklist `/api/checklist`:根据行程、天气、人群生成 Markdown checkbox 清单。
+
 ## 项目结构
 
 ```
